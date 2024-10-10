@@ -3,7 +3,6 @@ title: "Thesis"
 author: "Spencer Parr"
 date: "2024-10-03"
 output: html_document
-runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -16,9 +15,8 @@ library(tidyverse)
 library(ggplot2)
 library(dplyr)
 
-rmarkdown::render("index.Rmd")
 
-cliona <- read_csv("Cliona.csv") #load data
+cliona <- read_csv("../Cliona.csv") #load data
 ```
 
 # *Spencer Parr Thesis Analysis* {.tabset}
@@ -124,7 +122,7 @@ siteprev<- transectprev %>%
 
 2.  Graphing Prevalence
 
-    -2A. Basic bar graph representing
+  -2A. Basic bar graph representing
 
 ```{r}
 
@@ -199,7 +197,7 @@ While **Ivlev's Electivity Index** is typically used for dietary preferences, it
 
 -   The code first calculates how many times each coral species appears at each location (site). This gives a general sense of coral distribution across different locations, providing a simple count of occurrences per species at each site.
 
-    2.  **Coral Abundance by Species, Location, Transect, and Year**:
+  2.  **Coral Abundance by Species, Location, Transect, and Year**:
 
 <!-- -->
 
