@@ -2,7 +2,9 @@
 title: "Thesis"
 author: "Spencer Parr"
 date: "2024-10-03"
-output: html_document
+output:
+  html_document:
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -14,6 +16,7 @@ library(readr)
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
+library(knitr)
 
 
 cliona <- read_csv("../Cliona.csv") #load data
@@ -24,7 +27,9 @@ cliona <- read_csv("../Cliona.csv") #load data
 ## Info
 
 **Study Overview**:\
-This research investigates the impact of Clionaidae sponges on coral reef ecosystems in the U.S. Virgin Islands (USVI). Using data from the Territorial Coral Reef Monitoring Program (TCRMP), the study spans 34 reef sites over 14 years (2009-2023), focusing on how environmental disturbances (bleaching, hurricanes, diseases, etc.) influence Cliona-coral interactions and prevalence.
+The primary objective of this study is to assess the impact of Clionid sponges on coral reef ecosystems in the U.S. Virgin Islands. Coral reefs are critical for biodiversity and marine life, but have faced significant declines due to environmental stressors, including climate change, ocean acidification, and disease outbreaks. Clionid sponges, as bioeroders, contribute to coral degradation by breaking down the calcium carbonate structure of corals, accelerating reef decline. By examining the prevalence and interactions of Cliona sponges with coral over time, this research aims to understand how these sponges influence reef health and resilience, particularly in response to environmental disturbances such as bleaching events and hurricanes.
+
+This study utilizes long-term data collected by the Territorial Coral Reef Monitoring Program (TCRMP) from 2009 to 2023 across 34 reef sites in the USVI. The research focuses on three main questions: (1) how Cliona cover and coral interactions have changed over time, (2) how shifts in coral abundance affect Cliona-coral interactions, and (3) whether Cliona presence correlates with coral health, particularly disease prevalence. Through statistical modeling, including generalized linear models (GLMs) and linear mixed-effects models (LMEMs), the study will analyze the relationship between Cliona prevalence and environmental variables such as temperature, water quality, and coral species. This analysis is intended to reveal patterns of Cliona recruitment on stressed or diseased corals and to identify species-specific vulnerabilities, providing insights into the adaptive mechanisms of Cliona and guiding reef conservation strategies in light of changing ocean conditions.
 
 **Code Explanation**:\
 The R scripts provided manage and manipulate TCRMP data, preparing it for statistical analysis. Key steps include filtering Cliona species data, calculating prevalence, and integrating environmental factors. Models such as Linear Mixed-Effects Models (LMEMs) and Generalized Linear Models (GLMs) are applied to assess Cliona recruitment patterns, coral interactions, and environmental influences.
@@ -34,155 +39,91 @@ The R scripts provided manage and manipulate TCRMP data, preparing it for statis
 **Coral Health Data**:\
 Coral health data is the base structure of the the TCRMP data collection.
 
-## **Data Manipulation**
+## Cliona Prevalence- Coral Health Data
 
-### *This code explains the data management and manipulation that was done before analysis*
+### *This code explains the data management/manipulation and graphical evidence if difference in prevalence for each TCRMP location*
 
-1.  This code creates new columns in the cliona data frame based on whether the values in Spo1ID and Spo2ID match specific species identifiers ("CLSP" or "BOSP"). If the condition is true, it assigns the corresponding values from Spo1 and Spo2 to the new columns; otherwise, it assigns NA. This creates a more structured way to organize species-specific data from different ID columns.
+1.  The data is read into R using `read_csv`, and then selected columns are extracted, specifically: `Period`, `SampleType`, `Location`, `SampleYear`, `Method`, `Transect`, `SPP`, `Cliona`, `Spo1`, `Spo1ID`, `Spo2ID`, and `Spo2`. This selection reduces the dataset to only the columns relevant to this analysis.
 
-```{r}
-cliona <- cliona %>%
-  mutate(
-    CLSP = case_when(Spo1ID == "CLSP" ~ Spo1, TRUE ~ NA),  # Assign SPO1 value for CLSP
-    BOSP = case_when(Spo1ID == "BOSP" ~ Spo1, TRUE ~ NA)   # Assign SPO1 value for BOSP
-  )
+2.  Next, a new column called `presence` is created to indicate whether there is evidence of *Cliona* presence on each sample. The `mutate` function is used along with `if_else` to assign a value of `1` to `presence` if any of the following conditions are met: the `Cliona` value is greater than zero, `Spo1ID` or `Spo2ID` columns contain either "CLSP" or "BOSP". If none of these conditions are met, `presence` is set to `0`. After this, `presence` values are checked for any missing data, and `replace_na` is used to fill any `NA` values with `0`, ensuring that `presence` is either `1` or `0` without any missing values.
 
-cliona <- cliona %>%
-  mutate(
-    CLSP2 = case_when(Spo2ID == "CLSP" ~ Spo2, TRUE ~ NA),  # Assign SPO2 value for CLSP
-    BOSP2 = case_when(Spo2ID == "BOSP" ~ Spo2, TRUE ~ NA)   # Assign SPO2 value for BOSP
-  )
+3.  The code then applies several filters to refine the dataset. First, it filters for rows where `Period` is either "Annual" or "PostBL", `SampleType` is either "Permanent" or "permanent", and `Method` is either "intercept" or "50 cm belt". This step ensures that only specific types of samples are kept for the analysis. Further, rows where `Transect` contains the letter "A" are removed, ensuring that only certain transect data is included. Finally, the code filters for rows where `SampleYear` is 2005 or later, focusing on more recent data.
+
+4.  In the last step, additional transformations are applied. A new `ID` column is created to provide a unique identifier for each row, generated as a sequence from `1` to the number of rows in the filtered dataset. The `SampleYear`, `Location`, and `Transect` columns are converted to factor data types using `as.factor` to prepare them for categorical analysis. This finalizes the dataset with all necessary transformations, making it ready for further analysis or modeling.
+
+```{r,warning = FALSE, message = FALSE}
+#1
+cliona <- read_csv("../Cliona.csv")%>%
+  select(Period,SampleType, Location, SampleYear, Method, Transect, SPP, Cliona, Spo1, Spo1ID, Spo2ID, Spo2)%>%
+  #2
+  mutate(presence=if_else(Cliona>0 | Spo1ID %in% c("CLSP", "BOSP") | Spo2ID %in% c("CLSP", "BOSP"),1,0))%>%
+  mutate(presence=replace_na(presence,0))%>%
+  #3
+  filter(Period%in% c("Annual","PostBL")&SampleType%in% c("Permanent","permanent")&Method%in% c("intercept","50 cm belt"))%>%
+  filter(!grepl("A",Transect))%>%
+  filter(SampleYear>=2005)%>%
+  #4
+  mutate(ID=1:nrow(.),
+         SampleYear=as.factor(SampleYear),
+         Location=as.factor(Location),
+         Transect=as.factor(Transect))
 ```
 
-2.  Create a new data frame with only the columns that are needed
+5.  This R code calculates Cliona sponge prevalence across transects by grouping the `cliona` dataset by `Location`, `SampleYear`, and `Transect`. Within each group, it calculates three metrics: `prev` (the average presence of Cliona, indicating prevalence), `freq` (total occurrences of Cliona), and `total` (total observations in that group). After ungrouping the data, it adds a unique `ID` to each row. The resulting `transectprev` dataset provides summarized prevalence data for each unique combination of location, year, and transect.
 
-```{r}
-clionaclean <- cliona[c('Location', 'SampleYear', 'Period', 'SampleType', 'Method', 'Transect', 'SPP', 'CLSP', 'BOSP', 'Cliona', 'CLSP2', 'BOSP2')]
-```
-
-3.  Finding Presence of Cliona -3A. Change Transect and Year to a Factor
-
-```{r}
-clionaclean$Transect <- as.factor(clionaclean$Transect)
-clionaclean$SampleYear <- as.factor(clionaclean$SampleYear)
-```
-
-3B. Convert (CLSP, CLSP2, BOSP, BOSP2, & Cliona) columns to Binary (0 or 1)
-
-```{r}
-clionaclean$CLSP[is.na(clionaclean$CLSP)] <- 0
-clionaclean$BOSP[is.na(clionaclean$BOSP)] <- 0
-clionaclean$CLSP2[is.na(clionaclean$CLSP2)] <- 0
-clionaclean$BOSP2[is.na(clionaclean$BOSP2)] <- 0
-clionaclean$Cliona[is.na(clionaclean$Cliona)] <- 0
-```
-
-3C. Merge sponge columns together and make a new column for presence
-
-```{r}
-clionaclean$presence <- clionaclean$Cliona + clionaclean$CLSP + clionaclean$CLSP2 + clionaclean$BOSP + clionaclean$BOSP2
-
-clionabinary <- clionaclean %>%
-  mutate_if(is.numeric, ~1 * (. > 0))
-
-clionaclean1 <- clionabinary[c('Location', 'SampleYear', 'Period', 'SampleType', 'Method', 'Transect', 'SPP', 'presence')]
-
-clionaclean1 <- data.frame(subset(clionaclean, clionaclean$Period == 'Annual' & clionaclean$SampleType == 'Permanent' & clionaclean$Method %in% c('intercept','50 cm belt')))
-
-```
-
-4.  Remove transects with random letter in it and filter Year so that its from 2010-2023
-
-```{r}
-# Remove transects with "A" in the label
-clionaclean1 <- clionaclean1 %>%
-  filter(!grepl("A", Transect))
-
-# Convert SampleYear from factor to numeric 
-clionaclean1$SampleYear <- as.numeric(as.character(clionaclean1$SampleYear))
-                                      
-# Now filter rows with SampleYear >= 2010
-clionaclean1 <- clionaclean1 %>%
-  filter(SampleYear >= 2010)
-
-```
-
-## **Cliona Prevalence**
-
-1.  Determine & Standardize: Prevalence & Frequency The first code summarizes species presence for each combination of Location, SampleYear, and Transect by calculating the mean presence (prev), total presence (freq), and the total number of observations (total). The second Code summarizes species prevalence for each year and location by calculating the average prevalence (mean_prev) for each location in each sample year.
-
-```{r}
-transectprev <- clionaclean1 %>%
+```{r,warning = FALSE, message = FALSE}
+transectprev <- cliona %>%
   group_by(Location, SampleYear, Transect) %>%
-  summarise(prev = mean(presence), freq = sum(presence), total = n())
-
-
-
-siteprev<- transectprev %>%
-  group_by(Location, SampleYear)%>%
-  summarise(mean_prev=mean(prev))
+  summarise(prev = mean(presence), freq = sum(presence), total = n())%>%
+  ungroup()%>%
+  mutate(ID= 1:nrow(.))
 ```
 
-2.  Graphing Prevalence
-
--2A. Basic bar graph representing
+6.  This code creates a summary data frame, `location_means`, showing the average *Cliona* sponge prevalence for each location. It groups the `transectprev` data by `Location` and then calculates the mean of `prev` (prevalence) within each group, saving the result as `mean_prev`. The resulting `location_means` data frame has each location’s name and its corresponding average *Cliona* prevalence.
 
 ```{r}
-
-ggplot(siteprev, aes(x = reorder(Location, -mean_prev), y = mean_prev), color = SampleYear) +
-  geom_bar(stat = "identity", fill = "black") +
-  labs(title = "Prevalence of Cliona Sponges by Location",
-       x = "Location",
-       y = "Prevalence") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5))
-
+location_means <- transectprev %>%
+  group_by(Location) %>%
+  summarise(mean_prev = mean(prev))
 ```
 
-2B. Mean Prevalence of Cliona Sponges by Location and Year
+7.  This code generates a plot that visualizes the prevalence of *Cliona* sponges at different reef sites by creating a boxplot for each location. The `ggplot` function uses the `transectprev` dataset, which contains *Cliona* prevalence data, and arranges the locations on the x-axis in descending order of prevalence. Each boxplot represents the range and distribution of *Cliona* prevalence values at that location. To enhance the visualization, the code includes a `stat_summary` layer that adds a green diamond marker at the mean prevalence for each location, making it easy to compare average *Cliona* prevalence across sites.
 
-```{r}
-ggplot(transectprev, aes(x = reorder(Location, -prev), y = prev, fill = factor(SampleYear))) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Mean Prevalence of Cliona Sponges by Location and Year",
-       x = "Location",
-       y = "Prevalence",
-       fill = "Year") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5))
-```
+    ```{r}
+    ggplot(transectprev, aes(x = reorder(Location, -prev), y = prev)) +
+      geom_boxplot(fill = "lightblue") +
+      stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "darkgreen") +
+      labs(title = "Prevalence of Cliona Sponges by Location (with Mean Prevalence Marked)",
+           x = "Location",
+           y = "Prevalence") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    ```
 
-2C. Prevalence of Cliona Sponges by Location (with Distribution)
+This plot is important because it reveals substantial variability in *Cliona* prevalence across different reef sites. Locations such as Salt River West, Brewers Bay, and Savana show significantly higher prevalence levels, as indicated by both the wider range and higher position of the boxplots and mean markers, compared to other sites with much lower prevalence. This variability suggests that certain sites may be more susceptible to *Cliona* sponge colonization, potentially due to environmental conditions or other factors specific to those areas. Identifying these high-prevalence sites is crucial for targeted reef management and conservation strategies, as it highlights areas where *Cliona* might contribute more heavily to coral degradation.
 
-```{r}
-ggplot(transectprev, aes(x = reorder(Location, -prev), y = prev)) +
-  geom_boxplot(fill = "lightblue") +
-  labs(title = "Prevalence of Cliona Sponges by Location (with Distribution)",
-       x = "Location",
-       y = "Prevalence") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5))
-```
+8.  This code produces a set of line graphs showing the prevalence of Cliona sponges over time, broken down by transect and location. Each location has its own panel (using facet_wrap), and within each panel, different transects are represented by distinct lines and colors. The x-axis represents the sample year, while the y-axis shows the prevalence of Cliona sponges. The lines connect the prevalence data points over time for each transect, while points mark each specific measurement. The scale_x_continuous function formats the x-axis labels to show each unique year in the dataset, improving clarity.
 
-2D. Prevalence over years by transect
+```{r, fig.width=15, fig.height=8}
+# Convert SampleYear to numeric, if appropriate
+transectprev$SampleYear <- as.numeric(transectprev$SampleYear)
 
-```{r}
+# Then plot with the updated variable
 ggplot(transectprev, aes(x = SampleYear, y = prev, color = factor(Transect), group = Transect)) +
-  geom_line() +  # Draws lines between points
-  geom_point() +  # Adds points for each data point
-  facet_wrap(~Location, scales = "free_y") +  # Creates separate plots for each Location
+  geom_line() +
+  geom_point() +
+  facet_wrap(~Location, scales = "free_y") +
   labs(title = "Prevalence Over Years by Transect",
        x = "Year",
        y = "Prevalence",
        color = "Transect") +
-  scale_x_continuous(breaks = unique(transectprev$SampleYear), labels = unique(transectprev$SampleYear)) +  # Format x-axis labels
+  scale_x_continuous(breaks = unique(transectprev$SampleYear), labels = unique(transectprev$SampleYear)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5))
 ```
+
+This graph is valuable because it allows for a detailed temporal analysis of Cliona prevalence trends at multiple scales: across years, transects, and locations. By disaggregating the data by transect and location, the plot can reveal patterns, such as consistent increases or decreases in prevalence, or fluctuations in response to specific events or environmental changes. It’s particularly useful for identifying which transects or locations show higher susceptibility to Cliona over time, offering insights into possible environmental or ecological factors driving these patterns. This information is essential for reef management, as it helps target specific areas or transects that might need more frequent monitoring or interventions to mitigate Cliona spread.
 
 ## Substrate Preference
 
@@ -206,21 +147,15 @@ While **Ivlev's Electivity Index** is typically used for dietary preferences, it
 
 -   The second part refines the calculation to be more detailed by including both **transects** (smaller sampling areas within locations) and **sample years**. This breakdown gives the number of occurrences for each species not only by location but also by transect and year, making it possible to track coral abundance more precisely across both space and time.
 
-```{r}
-# Calculate coral abundance (number of occurrences per species per site)
-coral_abundance <- clionaclean1 %>%
-  group_by(SPP, Location) %>%
-  summarise(Abundance = n()) %>%
-  ungroup()
-
+```{r,warning = FALSE, message = FALSE}
 
 # Calculate coral abundance by transect and year
-coral_abundance <- clionaclean1 %>%
+coral_abundance <- cliona %>%
   group_by(SPP, Location, Transect, SampleYear) %>%
   summarise(Abundance = n()) %>%
   ungroup()
 
-clionaclean1 <- clionaclean1 %>%
+clionaclean1 <- cliona %>%
   left_join(coral_abundance, by = c("SPP", "Location", "Transect", "SampleYear"))
 ```
 
@@ -249,6 +184,24 @@ summary_cliona <- clionaclean1 %>%
           IvlevIndex = (ProportionPresence - ProportionAvailability) /
             (ProportionPresence + ProportionAvailability))
 
-# View the results
- print(Ivlev_Index)
+Ivlev_Index %>%
+  kable(caption = "Ivlev's Electivity Index Adjusted for Coral Abundance", digits = 4)
+```
+
+5.  The resulting graph shows a clear separation at zero, with bars above zero (blue) indicating a preference for certain coral species and bars below zero (red) indicating avoidance. This pattern reveals that Cliona generally avoids many coral species, with only a few species showing a positive electivity index, suggesting that Cliona selectively colonizes specific corals. This insight helps identify coral species that are more vulnerable to Cliona colonization, which is important for managing coral health and understanding Cliona’s ecological impact on reef systems.
+
+```{r, warning = FALSE, message = FALSE, fig.width=13, fig.height=8}
+ggplot(Ivlev_Index, aes(x = reorder(SPP, IvlevIndex), y = IvlevIndex, fill = IvlevIndex > 0)) +
+  geom_bar(stat = "identity", width = 0.8) +
+  labs(title = "Ivlev's Electivity Index for Cliona on Different Coral Species",
+       x = "Coral Species",
+       y = "Ivlev's Electivity Index") +
+  theme_minimal(base_size = 14) +
+  scale_fill_manual(values = c("red", "steelblue"), 
+                    name = "Preference",
+                    labels = c("Avoidance", "Preference")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 10),  # Adjust angle and font size
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center and bold title
+        legend.position = "top") +  # Move legend to the top
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.5)  # Add horizontal line at 0
 ```
