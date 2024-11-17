@@ -1,7 +1,7 @@
 ---
 title: "Thesis"
 author: "Spencer Parr"
-date: "2024-10-03"
+date: "2024-11-15"
 output:
   html_document:
     code_folding: hide
@@ -34,14 +34,14 @@ This study utilizes long-term data collected by the Territorial Coral Reef Monit
 **Code Explanation**:\
 The R scripts provided manage and manipulate TCRMP data, preparing it for statistical analysis. Key steps include filtering Cliona species data, calculating prevalence, and integrating environmental factors. Models such as Linear Mixed-Effects Models (LMEMs) and Generalized Linear Models (GLMs) are applied to assess Cliona recruitment patterns, coral interactions, and environmental influences.
 
-## Metadata
+Spencer Parr \## Metadata
 
 **Coral Health Data**:\
 Coral health data is the base structure of the the TCRMP data collection.
 
 ## Cliona Prevalence- Coral Health Data
 
-### *This code explains the data management/manipulation and graphical evidence if difference in prevalence for each TCRMP location*
+### *This code explains the data management/manipulation and graphical evidence Cliona prevalence for each TCRMP location*
 
 1.  The data is read into R using `read_csv`, and then selected columns are extracted, specifically: `Period`, `SampleType`, `Location`, `SampleYear`, `Method`, `Transect`, `SPP`, `Cliona`, `Spo1`, `Spo1ID`, `Spo2ID`, and `Spo2`. This selection reduces the dataset to only the columns relevant to this analysis.
 
@@ -125,6 +125,141 @@ ggplot(transectprev, aes(x = SampleYear, y = prev, color = factor(Transect), gro
 
 This graph is valuable because it allows for a detailed temporal analysis of Cliona prevalence trends at multiple scales: across years, transects, and locations. By disaggregating the data by transect and location, the plot can reveal patterns, such as consistent increases or decreases in prevalence, or fluctuations in response to specific events or environmental changes. It’s particularly useful for identifying which transects or locations show higher susceptibility to Cliona over time, offering insights into possible environmental or ecological factors driving these patterns. This information is essential for reef management, as it helps target specific areas or transects that might need more frequent monitoring or interventions to mitigate Cliona spread.
 
+Spencer Parr
+
+## Cliona Extent
+
+### *This code explains the data management/manipulation and graphical evidence Cliona extent for each TCRMP location*
+
+1.  The data is read into R using `read_csv`, and then selected columns are extracted, specifically: `Period`, `SampleType`, `Location`, `SampleYear`, `Method`, `Transect`, `SPP`, `Cliona`, `Spo1`, `Spo1ID`, `Spo2ID`, and `Spo2`. This selection reduces the dataset to only the columns relevant to this analysis.
+
+2.  the code generates two new columns, `CLSP` and `BOSP`, which indicate coverage values for two types of sponges. Using the `mutate` and `case_when` functions, it examines the columns `Spo1ID` and `Spo2ID` to populate these new columns. If `Spo1ID` contains "CLSP", then the value of `Spo1` is assigned to the `CLSP` column. Similarly, if `Spo2ID` contains "CLSP", then the value from `Spo2` is assigned to `CLSP`. The same process is used to populate the `BOSP` column, using "BOSP" as the indicator. If neither condition is met in either case, the value is set to `NA.`
+
+3.  The code then filters the data based on several criteria. First, it keeps only rows where `Period` is either "Annual" or "PostBL" and `SampleType` is either "Permanent" or "permanent", ensuring consistency in sample type naming. Also, only rows where `Method` is either "intercept" or "50 cm belt" are retained, narrowing the dataset to specific sampling methods. And rows with certain letters in the `Transect` column ("A", "R", or "L") are excluded using a filtering condition with `grepl`, and only data from 2005 onward (`SampleYear >= 2005`) is kept.
+
+4.  Finally, the data is reshaped from a wide format to a long format using `pivot_longer`. This transformation takes the columns `CLSP`, `BOSP`, and `Cliona` and combines them into two new columns: `SpongeType` and `Extent`. The `SpongeType` column identifies which type of sponge coverage is being recorded (either `CLSP`, `BOSP`, or `Cliona`), and `Extent` contains the corresponding value of coverage for each type.
+
+```{r, warning = FALSE, message = FALSE}
+
+#1. 
+clionaext <- read_csv("../Cliona.csv")%>%
+  select(Period,SampleType, Location, SampleYear, Method, Transect, SPP, Cliona, Spo1, Spo1ID, Spo2ID, Spo2)%>%
+  
+#2.
+  mutate( CLSP = case_when( Spo1ID == "CLSP" ~ Spo1, Spo2ID == "CLSP" ~ Spo2, TRUE ~ NA_real_),
+    BOSP = case_when( Spo1ID == "BOSP" ~ Spo1, Spo2ID == "BOSP" ~ Spo2,
+      TRUE ~ NA_real_)) %>%
+  select(-Spo1, -Spo1ID, -Spo2, -Spo2ID)%>%
+  
+#3.
+  filter(Period%in% c("Annual","PostBL")&SampleType%in% c("Permanent","permanent")&Method%in% c("intercept","50 cm belt"))%>%
+  filter(!grepl("A", "R", "L",Transect))%>%
+  filter(SampleYear>=2005)%>%
+  mutate(ID=1:nrow(.),
+         SampleYear=as.factor(SampleYear),
+         Location=as.factor(Location),
+         Transect=as.factor(Transect))%>%
+  
+#4. 
+  pivot_longer(cols = c(CLSP, BOSP, Cliona), 
+               names_to = "SpongeType", 
+               values_to = "Extent")
+
+```
+
+For the first analysis, I ask the question: Has the extent of Cliona sponge coverage increased or decreased over time? Is there a pattern in prevalence by year?
+
+5.  This code assigns the `clionaext` data frame to a new data frame named `ext_time`. It then updates `ext_time` by converting the `SampleYear` column from a factor to a numeric data type, ensuring that the year values are treated as continuous numbers rather than categorical labels.
+
+    ```{r, warning = FALSE, message = FALSE}
+    ext_time<-clionaext
+
+    ext_time <- ext_time %>%
+      mutate(SampleYear = as.numeric(as.character(SampleYear)))
+    ```
+
+6.  This code processes the `clionaext` data frame to calculate the total number of unique corals recorded in each year. First, it groups the data by `SampleYear` and uses `n_distinct(ID)` to count distinct `ID` values, representing unique coral observations. The resulting data frame, `unique_coral_counts`, contains `SampleYear` and `total_unique_corals`.
+
+    Next, the `SampleYear` column is converted from a factor to numeric using `mutate`. This ensures the year values are treated as continuous numbers for analyses or visualizations that require numerical formatting.
+
+```{r, warning = FALSE, message = FALSE}
+
+unique_coral_counts <- clionaext %>%
+  group_by(SampleYear) %>%
+  summarise(total_unique_corals = n_distinct(ID)) 
+
+unique_coral_counts <- unique_coral_counts%>%
+  mutate(SampleYear = as.numeric(as.character(SampleYear)))
+```
+
+7.  This code creates a new data frame, `ext_time_with_counts`, by merging (`left_join`) the `ext_time` data frame with the `unique_coral_counts` data frame. The join is performed using the `SampleYear` column, which is common to both data frames.
+
+```{r, warning = FALSE, message = FALSE}
+
+ext_time_with_counts <- ext_time %>%
+  left_join(unique_coral_counts, by = "SampleYear")
+```
+
+8.  This code processes the `ext_time_with_counts` data frame to summarize sponge coverage by year. It groups the data by `SampleYear` and calculates the total extent of sponge coverage (`total_extent`), retrieves the total unique coral count for each year (`count_observations`), and computes the weighted average extent (`weighted_avg_extent`) by dividing the total extent by the unique coral count.
+
+```{r, warning = FALSE, message = FALSE}
+
+weighted_summary <- ext_time_with_counts %>%
+  group_by(SampleYear) %>%
+  summarise(
+    total_extent = sum(Extent, na.rm = TRUE),
+    count_observations = first(total_unique_corals),  # Use `first` to avoid altering the count
+    weighted_avg_extent = total_extent / count_observations
+  )
+```
+
+9.  This code creates a line plot using the `weighted_summary` data frame to visualize the weighted average extent of Cliona sponge coverage over time. It maps `SampleYear` to the x-axis and `weighted_avg_extent` to the y-axis, adding a blue line and points to highlight the data, along with a minimal theme and descriptive labels for the title, x-axis, and y-axis.
+
+```{r, fig.width=15, fig.height=8}
+ggplot(weighted_summary, aes(x = SampleYear, y = weighted_avg_extent)) +
+  geom_line(color = "blue") +
+  geom_point(size = 2) +
+  labs(
+    title = "Weighted Average Cliona Sponge Coverage Over Time",
+    x = "Year",
+    y = "Weighted Average Extent of Coverage"
+  ) +
+  theme_minimal()
+
+```
+
+Next I ask the question: How does the extent of coverage differ between coral species each year? Are there species that experience fluctuating or consistent coverage levels over time?
+
+10. This code creates a summary data frame, `spp_summary`, by grouping the `ext_time_with_counts` data frame by `SampleYear` and `SPP` (coral species). For each group, it calculates the total sponge coverage extent (`total_extent`), retrieves the total unique coral count for the year (`count_observations`), and computes the weighted average sponge extent (`weighted_avg_extent`) by dividing the total extent by the unique coral count. This provides a standardized metric of sponge coverage for each coral species across years.
+
+```{r, warning = FALSE, message = FALSE}
+
+spp_summary <- ext_time_with_counts %>%
+  group_by(SampleYear, SPP) %>%
+  summarise(
+    total_extent = sum(Extent, na.rm = TRUE),
+    count_observations = first(total_unique_corals),
+    weighted_avg_extent = total_extent / count_observations
+  )
+```
+
+11. This code creates a line plot using the `spp_summary` data frame to visualize the weighted average extent of Cliona sponge coverage over time for each coral species (`SPP`). The x-axis represents `SampleYear`, the y-axis represents `weighted_avg_extent`, and different coral species are distinguished by color.
+
+```{r, fig.width=15, fig.height=8}
+
+ggplot(spp_summary, aes(x = SampleYear, y = weighted_avg_extent, color = SPP)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Weighted Average Cliona Sponge Coverage by Coral Species Over Time",
+    x = "Year",
+    y = "Weighted Average Extent of Coverage"
+  ) +
+  theme_minimal()
+```
+
+Spencer Parr
+
 ## Substrate Preference
 
 ### Ivlev's Electivity Index
@@ -205,3 +340,5 @@ ggplot(Ivlev_Index, aes(x = reorder(SPP, IvlevIndex), y = IvlevIndex, fill = Ivl
         legend.position = "top") +  # Move legend to the top
   geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.5)  # Add horizontal line at 0
 ```
+
+Spencer Parr
