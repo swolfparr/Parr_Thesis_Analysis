@@ -17,6 +17,10 @@ library(tidyverse)
 library(ggplot2)
 library(dplyr)
 library(knitr)
+library(gt)
+library(car)
+library(gridExtra)
+library(multcompView)
 
 
 cliona <- read_csv("../Cliona.csv") #load data
@@ -34,7 +38,9 @@ This study utilizes long-term data collected by the Territorial Coral Reef Monit
 **Code Explanation**:\
 The R scripts provided manage and manipulate TCRMP data, preparing it for statistical analysis. Key steps include filtering Cliona species data, calculating prevalence, and integrating environmental factors. Models such as Linear Mixed-Effects Models (LMEMs) and Generalized Linear Models (GLMs) are applied to assess Cliona recruitment patterns, coral interactions, and environmental influences.
 
-Spencer Parr \## Metadata
+Spencer Parr
+
+## Metadata
 
 **Coral Health Data**:\
 Coral health data is the base structure of the the TCRMP data collection.
@@ -81,7 +87,7 @@ transectprev <- cliona %>%
 
 6.  This code creates a summary data frame, `location_means`, showing the average *Cliona* sponge prevalence for each location. It groups the `transectprev` data by `Location` and then calculates the mean of `prev` (prevalence) within each group, saving the result as `mean_prev`. The resulting `location_means` data frame has each location’s name and its corresponding average *Cliona* prevalence.
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 location_means <- transectprev %>%
   group_by(Location) %>%
   summarise(mean_prev = mean(prev))
@@ -126,6 +132,218 @@ ggplot(transectprev, aes(x = SampleYear, y = prev, color = factor(Transect), gro
 This graph is valuable because it allows for a detailed temporal analysis of Cliona prevalence trends at multiple scales: across years, transects, and locations. By disaggregating the data by transect and location, the plot can reveal patterns, such as consistent increases or decreases in prevalence, or fluctuations in response to specific events or environmental changes. It’s particularly useful for identifying which transects or locations show higher susceptibility to Cliona over time, offering insights into possible environmental or ecological factors driving these patterns. This information is essential for reef management, as it helps target specific areas or transects that might need more frequent monitoring or interventions to mitigate Cliona spread.
 
 Spencer Parr
+
+## Cliona Prevalence by Reef Complex
+
+### *This code shows the process of cleaning, graphing, and analyzing the coral health data in order to find if there is any significant difference in Cliona prevalence between Nearshore, Offshore, and Mesophotic sites.* 
+
+1.  revert back to Coral Prevalence- Coral Health Data tab, steps 1-5 are identical
+
+    ```{r, warning = FALSE, message = FALSE}
+    #1
+    cliona <- read_csv("../Cliona.csv")%>%
+      select(Period,SampleType, Location, SampleYear, Method, Transect, SPP, Cliona, Spo1, Spo1ID, Spo2ID, Spo2)%>%
+      #2
+      mutate(presence=if_else(Cliona>0 | Spo1ID %in% c("CLSP", "BOSP") | Spo2ID %in% c("CLSP", "BOSP"),1,0))%>%
+      mutate(presence=replace_na(presence,0))%>%
+      #3
+      filter(Period%in% c("Annual","PostBL")&SampleType%in% c("Permanent","permanent")&Method%in% c("intercept","50 cm belt"))%>%
+      filter(!grepl("A",Transect))%>%
+      filter(SampleYear>=2005)%>%
+      #4
+      mutate(ID=1:nrow(.),
+             SampleYear=as.factor(SampleYear),
+             Location=as.factor(Location),
+             Transect=as.factor(Transect))
+    #5
+    transectprev <- cliona %>%
+      group_by(Location, SampleYear, Transect) %>%
+      summarise(prev = mean(presence), freq = sum(presence), total = n())%>%
+      ungroup()%>%
+      mutate(ID= 1:nrow(.))
+    ```
+
+2.  Read in the TCRMP site metadata csv. This data frame has 8 columns: Location (e.g., Coral Bay), Code (e.g., CRB), Island (e.g., STJ), Latitude (e.g., 18.338), Longitude (e.g., -64.704), ReefComplex (e.g., Nearshore), Depth (e.g., 9), and YearAdded (e.g., 2011)
+
+    ```{r,  warning = FALSE, message = FALSE}
+    reef_complex <- read_csv("../SiteMetadata.csv")
+    ```
+
+3.  Next I merge the **`transectprev`** data frame with the **`reef_complex`** data frame, adding reef complex information (e.g., Nearshore, Offshore, Mesophotic) to the corresponding locations in **`transectprev`** based on the **`Location`** column.
+
+    ```{r,  warning = FALSE, message = FALSE}
+    Reef_Types <- transectprev %>%
+      left_join(reef_complex, by = "Location")
+    ```
+
+4.  This code groups the **`Reef_Types`** data frame by **`Location`** and **`ReefComplex`**, calculates the mean prevalence (**`prev`**) for each group while ignoring missing values, and then converts **`ReefComplex`** into a factor with the levels ordered as **"Nearshore," "Offshore,"** and **"Mesophotic."**
+
+    ```{r, warning = FALSE, message = FALSE}
+    reef_sum <- Reef_Types %>%
+      group_by(Location, ReefComplex) %>%
+      summarise(
+        mean_prevalence = mean(prev, na.rm = TRUE)  # Calculate mean prevalence
+      )%>%
+      mutate( ReefComplex = factor(ReefComplex, levels = c("Nearshore", "Offshore", "Mesophotic")))
+    ```
+
+5.  This code generates a boxplot to visualize the mean prevalence of Cliona sponges across different reef complexes using the `reef_sum` dataset. It maps `ReefComplex` to the x-axis, `mean_prevalence` to the y-axis, and uses colors to distinguish reef complexes.
+
+    ```{r, fig.width=15, fig.height=8}
+    ggplot(reef_sum, aes(x = ReefComplex, y = mean_prevalence, fill = ReefComplex)) +
+      geom_boxplot(outlier.color = "red", outlier.shape = 16) +
+      geom_jitter(width = 0.2, size = 2, alpha = 0.6) +  # Add jitter for data points
+      labs(
+        title = "Cliona Sponge Prevalence Across Reef Complexes",
+        x = "Reef Complex",
+        y = "Mean Prevalence"
+      ) +
+      theme_minimal() +
+      theme(
+        legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust = 1)
+      )
+    ```
+
+6.  Next we run a one-way Analysis of Variance (ANOVA) to test whether there is a statistically significant difference in **mean Cliona sponge prevalence** across different **ReefComplex** categories (Nearshore, Offshore, and Mesophotic).
+
+    ```{r,warning = FALSE, message = FALSE}
+    # Run ANOVA
+    anova_result <- aov(mean_prevalence ~ ReefComplex, data = reef_sum)
+    ```
+
+    The ANOVA results indicate a statistically significant difference in the mean prevalence of **Cliona sponge coverage** across the three reef complexes (Nearshore, Offshore, and Mesophotic). The **ReefComplex** factor accounts for a **Sum of Squares (Sum Sq)** of **0.005884**, while the residual variation (unexplained variance) accounts for **0.013323**. The **Mean Square (Mean Sq)** for ReefComplex is **0.0029420**, and the F-statistic is **6.625**, with an associated p-value (**Pr(\>F)**) of **0.00414**. This p-value is below the conventional threshold of 0.05, suggesting that the differences in Cliona prevalence among the reef complexes are statistically significant.
+
+    ```{r}
+
+    # Create a ANOVA table
+    broom::tidy(anova_result) %>%
+      gt() %>%
+      tab_header(
+        title = "ANOVA Results for Cliona Sponge Prevalence Across Reef Complexes"
+      )
+
+    ```
+
+7.  Next step is the **TukeyHSD (Tukey's Honest Significant Differences)** test which is a post-hoc analysis used to identify which specific group pairs have significant differences in their means. It adjusts for multiple comparisons to control the family-wise error rate, ensuring that conclusions about group differences are not overstated.
+
+    ```{r,warning = FALSE, message = FALSE}
+    tukey_result <- TukeyHSD(anova_result)
+    ```
+
+    The TukeyHSD test shows a significant difference in Cliona sponge prevalence between Nearshore and Mesophotic reefs, with Nearshore having a higher mean prevalence (difference = **0.0331**, p = **0.003**). No significant differences were found between Offshore and Mesophotic reefs (p = **0.207**) or Offshore and Nearshore reefs (p = **0.151**). These results indicate that Nearshore reefs have notably higher prevalence compared to Mesophotic reefs, while other comparisons show no meaningful differences.
+
+    ```{r}
+
+    # Create a TukeyHSD table
+    broom::tidy(tukey_result) %>%
+      gt() %>%
+      tab_header(
+        title = "TukeyHSD Results for Cliona Sponge Prevalence Across Reef Complexes"
+      )
+    ```
+
+    We still need to check for normality of residuals and homogeneity of variances. For normality a Shapiro-Wilk statistic will be ran, and for homogeneity of variances an Levene's test will be ran.
+
+8.  The Shapiro-Wilk test produced a **W statistic of 0.965** and a **p-value of 0.3555**. Since the p-value is greater than the conventional threshold of 0.05, we fail to reject the null hypothesis that the residuals are normally distributed. This indicates that the assumption of normality for the ANOVA model's residuals is satisfied, supporting the validity of the ANOVA results.
+
+    ```{r}
+    shapiro<-shapiro.test(residuals(anova_result))
+
+    # Create a shapiro table
+    broom::tidy(shapiro) %>%
+      gt() %>%
+      tab_header(
+        title = "Shapiro-Wilk Results for Cliona Sponge Prevalence Across Reef Complexes"
+      )
+    ```
+
+9.  The **Q-Q plot** shows that the residuals align closely with the red reference line, indicating that they are approximately normally distributed. The **histogram** demonstrates that the residuals are symmetrically distributed around zero. And the **density plot** compares the residuals’ distribution (blue line) to a theoretical normal curve (red dashed line), showing strong alignment with minor deviations. These plots confirm that the residuals satisfy the normality assumption required for ANOVA, supporting the validity of the statistical analysis.
+
+    ```{r, fig.width=15, fig.height=8}
+
+    # Generate individual plots
+    qq_plot <- ggplot(data.frame(residuals = residuals(anova_result)), aes(sample = residuals)) +
+      stat_qq() + stat_qq_line(color = "red") + 
+      labs(title = "Q-Q Plot of Residuals")
+
+    hist_plot <- ggplot(data.frame(residuals = residuals(anova_result)), aes(x = residuals)) +
+      geom_histogram(binwidth = 0.005, fill = "lightblue", color = "black") + 
+      labs(title = "Histogram of Residuals", x = "Residuals", y = "Frequency") +
+      theme_minimal()
+
+    density_plot <- ggplot(data.frame(residuals = residuals(anova_result)), aes(x = residuals)) +
+      geom_density(color = "blue", fill = "lightblue", alpha = 0.5) +
+      stat_function(fun = dnorm, args = list(mean = mean(residuals(anova_result)), 
+                                             sd = sd(residuals(anova_result))),
+                    color = "red", linetype = "dashed") +
+      labs(title = "Density Plot with Normal Curve", x = "Residuals", y = "Density")
+
+    # Arrange plots
+    grid.arrange(qq_plot, hist_plot, density_plot, nrow = 1)
+
+    ```
+
+10. The Levene's test results show an **F-value of 2.3661** with a **p-value of 0.1111**. Since the p-value is greater than the threshold of 0.05, we fail to reject the null hypothesis that the group variances are equal. This indicates that the assumption of homogeneity of variance is satisfied, supporting the appropriateness of using ANOVA for this data.
+
+    ```{r}
+    levene<-leveneTest(mean_prevalence ~ ReefComplex, data = reef_sum)
+
+    # Create a Levene table
+    broom::tidy(levene) %>%
+      gt() %>%
+      tab_header(
+        title = "Levene's Test Results for Cliona Sponge Prevalence Across Reef Complexes"
+      )
+    ```
+
+11. Finally, we need to visualize the original mean prevalence between reef complexes but now with TukeyHSD multcompletters. First, the **`TukeyHSD`** function is applied to the ANOVA model to compute pairwise comparisons of means for the "ReefComplex" variable, identifying which groups differ significantly. The **`multcompView::multcompLetters`** function then assigns grouping letters (e.g., "a", "b") based on adjusted p-values, indicating which groups are statistically similar or different. These labels are converted into a data frame, with the "ReefComplex" levels and their respective group letters for easy handling. Finally, the **`left_join`** function integrates the Tukey test results (group letters) into the **`reef_sum`** dataset.
+
+    ```{r, warning = FALSE, message = FALSE}
+    ####visualise the resutls#######
+
+    # Extract Tukey test results
+    tukey_result <- TukeyHSD(anova_result, "ReefComplex")
+
+    # Convert Tukey results to group letters
+    library(multcompView)
+    tukey_labels <- multcompLetters(tukey_result$ReefComplex[, "p adj"])$Letters
+
+    # Convert to a data frame for merging
+    tukey_labels <- data.frame(
+      ReefComplex = names(tukey_labels),
+      group = tukey_labels
+    )
+
+    # Merge tukey_labels with your reef_sum data
+    reef_sum <- reef_sum %>%
+      left_join(tukey_labels, by = "ReefComplex")
+
+    ```
+
+12. This code generates a boxplot comparing mean Cliona sponge prevalence across three reef complexes: Mesophotic, Nearshore, and Offshore, with statistical group labels from Tukey's post-hoc test. The boxplot shows the median prevalence (horizontal line), spread (interquartile range and whiskers), and outliers (red dots). Statistical group labels ("a", "b", "ab") indicate significant differences: Mesophotic reefs have significantly lower prevalence than Nearshore (p = 0.003), while Offshore overlaps with both. Nearshore reefs have the highest prevalence and variability, Mesophotic the lowest with narrow spread, and Offshore shows intermediate prevalence. This visualization highlights depth-related differences in sponge prevalence, suggesting ecological patterns tied to reef complex characteristics.
+
+    ```{r, fig.width=15, fig.height=8}
+    # Plot with Tukey labels
+    ggplot(reef_sum, aes(x = ReefComplex, y = mean_prevalence, fill = ReefComplex)) +
+      geom_boxplot(outlier.color = "red", outlier.shape = 16) +
+      geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+      geom_text(
+        aes(label = group, x = ReefComplex, y = max(mean_prevalence) + 0.01),
+        data = reef_sum, inherit.aes = FALSE, color = "black", size = 4, vjust = -0.5
+      ) +
+      labs(
+        title = "Cliona Sponge Prevalence Across Reef Complexes",
+        x = "Reef Complex",
+        y = "Mean Prevalence"
+      ) +
+      theme_minimal() +
+      theme(
+        legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust = 1)
+      )
+
+    ```
 
 ## Cliona Extent
 
