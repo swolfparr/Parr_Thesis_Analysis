@@ -106,7 +106,7 @@ location_means <- transectprev %>%
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
     ```
 
-This plot is important because it reveals substantial variability in *Cliona* prevalence across different reef sites. Locations such as Salt River West, Brewers Bay, and Savana show significantly higher prevalence levels, as indicated by both the wider range and higher position of the boxplots and mean markers, compared to other sites with much lower prevalence. This variability suggests that certain sites may be more susceptible to *Cliona* sponge colonization, potentially due to environmental conditions or other factors specific to those areas. Identifying these high-prevalence sites is crucial for targeted reef management and conservation strategies, as it highlights areas where *Cliona* might contribute more heavily to coral degradation.
+This plot is important because it reveals the variability in *Cliona* prevalence across different reef sites. Locations such as Salt River West, Brewers Bay, and Savana show significantly higher prevalence levels, as indicated by both the wider range and higher position of the boxplots and mean markers, compared to other sites with much lower prevalence. This variability suggests that certain sites may be more susceptible to *Cliona* sponge colonization, potentially due to environmental conditions or other factors specific to those areas.
 
 8.  This code produces a set of line graphs showing the prevalence of Cliona sponges over time, broken down by transect and location. Each location has its own panel (using facet_wrap), and within each panel, different transects are represented by distinct lines and colors. The x-axis represents the sample year, while the y-axis shows the prevalence of Cliona sponges. The lines connect the prevalence data points over time for each transect, while points mark each specific measurement. The scale_x_continuous function formats the x-axis labels to show each unique year in the dataset, improving clarity.
 
@@ -129,7 +129,7 @@ ggplot(transectprev, aes(x = SampleYear, y = prev, color = factor(Transect), gro
         plot.title = element_text(hjust = 0.5))
 ```
 
-This graph is valuable because it allows for a detailed temporal analysis of Cliona prevalence trends at multiple scales: across years, transects, and locations. By disaggregating the data by transect and location, the plot can reveal patterns, such as consistent increases or decreases in prevalence, or fluctuations in response to specific events or environmental changes. It’s particularly useful for identifying which transects or locations show higher susceptibility to Cliona over time, offering insights into possible environmental or ecological factors driving these patterns. This information is essential for reef management, as it helps target specific areas or transects that might need more frequent monitoring or interventions to mitigate Cliona spread.
+This graph is valuable because it allows for temporal analysis of Cliona prevalence trends at multiple scales: across years, transects, and locations. By categegorising between the data by transect and location, the plot can reveal patterns, such as consistent increases or decreases in prevalence, or fluctuations in response to specific events or environmental changes. It could also be used to identify which transects or locations show higher susceptibility to Cliona over time.
 
 Spencer Parr
 
@@ -558,5 +558,7 @@ ggplot(Ivlev_Index, aes(x = reorder(SPP, IvlevIndex), y = IvlevIndex, fill = Ivl
         legend.position = "top") +  # Move legend to the top
   geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.5)  # Add horizontal line at 0
 ```
+
+The bar graph shows Ivlev's Electivity Index for Cliona sponge prevalence on various coral species, quantifying the degree of preference (positive values) or avoidance (negative values) exhibited by Cliona. Coral species are displayed along the x-axis, with the y-axis representing the electivity index, ranging from -1 (complete avoidance) to 1 (complete preference). Most coral species show a strong avoidance by Cliona, evidenced by a majority of red bars with negative values. Notably, species such as *MFCL*, *PS*, and *DL* exhibit the highest positive electivity indices, indicating a clear preference for colonization. This suggests that these coral species may provide favorable conditions for Cliona, such as structural complexity or susceptibility to colonization. Conversely, species such as *AC*, *AF*, and *AT* demonstrate the most significant avoidance, with values near -1. This information suggests that there is selective colonization behavior of Cliona, which may have important implications for understanding its ecological interactions and impacts on coral reef ecosystems.
 
 Spencer Parr
