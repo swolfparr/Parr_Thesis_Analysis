@@ -565,4 +565,4 @@ Spencer Parr
 
 ## Site Map
 
-![Map 1: Spatial distribution of Cliona sponge prevalence across TCRMP monitoring sites in the U.S. Virgin Islands. Point size represents the mean prevalence percentage of Cliona sponges at each site, with larger points indicating higher prevalence. Colors depict reef complex classifications: nearshore (light green), offshore (medium green), and mesophotic (dark green). This visualization highlights variation in Cliona prevalence and reef complex types across the region.](images/Final_Map.jpg)
+![Map 1: Spatial distribution of Cliona sponge prevalence across TCRMP monitoring sites in the U.S. Virgin Islands. Point size represents the mean prevalence percentage of Cliona sponges at each site, with larger points indicating higher prevalence. Colors depict reef complex classifications: nearshore (light green), offshore (medium green), and mesophotic (dark green). This visualization highlights variation in Cliona prevalence and reef complex types across the region.](images/fixedmap.jpg)
