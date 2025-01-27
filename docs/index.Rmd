@@ -21,9 +21,12 @@ library(gt)
 library(car)
 library(gridExtra)
 library(multcompView)
+library(knitr)
+library(kableExtra)
+library(lme4)
 
 
-cliona <- read_csv("../Cliona.csv") #load data
+raw_clio <- read_csv("../Cliona.csv") #load data
 ```
 
 # *Spencer Parr Thesis Analysis* {.tabset}
@@ -45,9 +48,219 @@ Spencer Parr
 **Coral Health Data**:\
 Coral health data is the base structure of the the TCRMP data collection.
 
+```{r,warning = FALSE, message = FALSE}
+# Metadata table as a data frame
+metadata <- data.frame(
+  Columns = c(
+    "Location", "SampleDate", "SampleYear", "SampleMonth", "Period", "SampleType", "Method", 
+    "Recorder", "Transect", "SPP", "Size", "Interactions", "Predation", "Notes", "Damage", 
+    "BLP", "BLII", "BL, P, VP, SP", "BLType", "BLCause", "CW", "CWLight", "CWDark", 
+    "OldMort", "RecMort", "Disease", "NoLesion", "LesionPattern", "LesionEdge"
+  ),
+  Description = c(
+    "Monitoring location at which data was collected",
+    "Date on which data was collected",
+    "Monitoring period in which data was collected; Note - Sample year may not always match the year from the SampleDate if a location was surveyed late in the annual monitoring period",
+    "Month in which data was collected; Note - when a location was not surveyed fully in the same month, the month in which sampling began is used as the sample month",
+    "Refers to the sample period in which the data falls; Annual, PeakBL, PostBL, SCTLD, WS, and Juvenile are the periods",
+    "Indicates the type of transect (random or permanent) from which data was collected",
+    "Indicates the way in which data was collected (e.g., line intercept, belt transect)",
+    "Diver who recorded the data",
+    "Transect number; Typically 6 transects per site, but additional transects may have been recorded",
+    "Coral identified to species; If not identifiable to species, genus is used",
+    "Coral colony size; Length (maximum planar diameter), Width (perpendicular to length), and Height (perpendicular to plane of growth)",
+    "Refers to other benthic entities interacting with living coral tissue; Includes macroalgae, sponges, cyanobacteria, etc.",
+    "Type and number of predators (e.g., damselfish, Coralliophila sp.)",
+    "Additional notes about the colony condition",
+    "Indicates the type of damage experienced by the colony (e.g., broken, overturned)",
+    "Indicates the bleaching status of a colony; Used before percent bleaching and paling were recorded",
+    "Indicates a secondary bleaching condition in addition to 'BLP'",
+    "Represents the proportion of the colony's tissue affected by bleaching or paling; VP and SP indicate intermediary stages",
+    "Refers to the type or location of bleaching on a colony (e.g., Focal, Medial, Granular)",
+    "Notes the cause of observed bleaching (e.g., under Lobophora sp.)",
+    "Represents the proportion of tissue at the light end of the Coral Watch colony color scale",
+    "Lightest colony living tissue color observed (Coral Watch scale: 1-6)",
+    "Darkest colony living tissue color observed (Coral Watch scale)",
+    "Proportion of the colony skeletal structure considered old partial mortality",
+    "Proportion of the colony skeletal structure considered recent partial mortality",
+    "Presence of Caribbean coral diseases; Proportion of the colony affected by lesions",
+    "Number of lesions present on the colony",
+    "Describes the location of rapid tissue loss diseases (e.g., at edges or center of colony)",
+    "Describes characteristics of the active lesion margin (e.g., smooth line, irregular pattern)"
+  )
+)
+
+# Create the table
+metadata %>%
+  kbl(caption = "Metadata for Benthic Coral Health Data") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left"
+  )
+
+```
+
+```{r,warning = FALSE, message = FALSE}
+# Notes as a data frame
+notes <- data.frame(
+  ID = 1:11,
+  Note = c(
+    "Transects are 10m in length with typically 6 per site, but additional transects may be present.",
+    "Prior to 2007 only colonies with a max planar diameter greater than 10 cm were assessed.",
+    "Prior to 2005, there were lapses in recording some variables.",
+    "Coral interactions have been recorded from 2009 onward.",
+    "Highlighted data has not been verified due to missing data sheets.",
+    "Use of CW, CWLight, and CWDark was phased out in September 2015.",
+    "Macroalgae previously identified as 'encrusting Lobophora sp.' was changed to Peyssonnelia sp in October 2015.",
+    "Ramicrusta sp was officially added as a macroalgae interaction in 2017.",
+    "Stony Coral Tissue Loss Disease (SCTLD) was first observed in the US Virgin Islands in January 2019.",
+    "Additional columns (NoLesion, LesionPattern, LesionEdge) were added in February 2020.",
+    "During the sample period 'Juvenile', specific transects were assessed for coral recruitment."
+  )
+)
+
+# Create the notes table
+notes %>%
+  kbl(caption = "Additional Notes for Coral Health Metadata") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left"
+  )
+
+```
+
+```{r,warning = FALSE, message = FALSE}
+site_metadata <- data.frame(
+  Location = c(
+    "Coral Bay", "Fish Bay", "Meri Shoal", "Black Point", "Botany Bay", "Brewers Bay",
+    "Buck Island STT", "Coculus Rock", "College Shoal East", "Flat Cay", "Ginsburg Fringe",
+    "Grammanik Tiger FSA", "Hind Bank East FSA", "Magens Bay", "Ruperts Rock", "Savana",
+    "Seahorse Cottage Shoal", "South Capella", "South Water", "St James", "Buck Island STX",
+    "Buck Island STX Deep", "Cane Bay", "Cane Bay Deep", "Castle", "Eagle Ray", "Great Pond",
+    "Jacks Bay", "Kings Corner", "Lang Bank EEMP", "Lang Bank Red Hind FSA", 
+    "Mutton Snapper FSA", "Salt River Deep", "Salt River West", "Sprat Hole"
+  ),
+  Code = c(
+    "CRB", "FSB", "MSR", "BPT", "BTY", "BWR", "BIT", "CKR", "CSE", "FLC", "GBF", 
+    "GKT", "HBE", "MGN", "RRK", "SVN", "SHR", "SCP", "SWT", "SSJ", "BIX", "BID",
+    "CBS", "CBD", "CST", "EGR", "GRP", "JKB", "KGC", "LBP", "LBH", "MTS", "SRD", "SRW", "SPH"
+  ),
+  Island = c(
+    "STJ", "STJ", "STJ", "STT", "STT", "STT", "STT", "STT", "STT", "STT", "STT", 
+    "STT", "STT", "STT", "STT", "STT", "STT", "STT", "STT", "STT", "STX", "STX", 
+    "STX", "STX", "STX", "STX", "STX", "STX", "STX", "STX", "STX", "STX", "STX", "STX", "STX"
+  ),
+  Latitude = c(
+    18.33797, 18.31417, 18.24447, 18.34450, 18.35738, 18.34403, 18.27883, 18.31257, 18.18568,
+    18.31822, 18.18770, 18.18885, 18.20217, 18.37425, 18.327433, 18.34064, 18.29467, 18.26267,
+    18.28068, 18.29459, 17.78500, 17.80659, 17.77388, 17.77661, 17.76278, 17.76150, 17.71097,
+    17.74337, 17.69116, 17.72145, 17.82427, 17.63660, 17.78523, 17.78530, 17.73400
+  ),
+  Longitude = c(
+    -64.70402, -64.76408, -64.75862, -64.98595, -65.03442, -64.98435, -64.89833, -64.86058, 
+    -65.07677, -64.99104, -64.95998, -64.95659, -65.00158, -64.93438, -64.925967, -65.08205, 
+    -64.86750, -64.87237, -64.94592, -64.83238, -64.60917, -64.59935, -64.81350, -64.81522,
+    -64.59743, -64.69880, -64.65221, -64.57160, -64.90008, -64.54706, -64.44963, -64.86240,
+    -64.75917, -64.75940, -64.89540
+  ),
+  ReefComplex = c(
+    "Nearshore", "Nearshore", "Mesophotic", "Nearshore", "Nearshore", "Nearshore",
+    "Offshore", "Nearshore", "Mesophotic", "Offshore", "Mesophotic", "Mesophotic", 
+    "Mesophotic", "Nearshore", "Nearshore", "Offshore", "Offshore", "Offshore", 
+    "Offshore", "Offshore", "Offshore", "Mesophotic", "Nearshore", "Mesophotic", 
+    "Offshore", "Offshore", "Nearshore", "Nearshore", "Nearshore", "Mesophotic", 
+    "Mesophotic", "Offshore", "Mesophotic", "Nearshore", "Nearshore"
+  ),
+  Depth = c(
+    9, 6, 30, 9, 8, 6, 14, 7, 30, 12, 63, 38, 39, 7, 5, 9, 20, 20, 20, 15, 15, 33, 
+    10, 38, 7, 10, 6, 14, 17, 27, 33, 24, 30, 11, 8
+  ),
+  YearAdded = c(
+    2011, 2002, 2005, 2003, 2002, 2002, 2005, 2002, 2003, 2003, 2011, 2003, 2003, 
+    2002, 2022, 2003, 2003, 2003, 2005, 2005, 2002, 2017, 2002, 2009, 2003, 2002, 
+    2003, 2002, 2007, 2009, 2002, 2003, 2009, 2002, 2002
+  )
+)
+
+# Create a styled table
+site_metadata %>%
+  kbl(caption = "Survey Sites Metadata") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = TRUE,
+    position = "left"
+  )
+
+
+```
+
+```{r,warning = FALSE, message = FALSE}
+# Metadata as a data frame
+benthic_cover_metadata <- data.frame(
+  Columns = c(
+    "SampleYear", "SampleMonth", "Period", "Location", "FilmDate",
+    "NoPts", "AnalysisBy", "AnalysisDate", "Transect", "BenthicCover", "Notes"
+  ),
+  Description = c(
+    "Monitoring period in which data was collected; Sample year may not always match the year from the FilmDate if a location was surveyed late in the annual monitoring period.",
+    "Month in which data was collected; when a location was not surveyed fully in the same month, the month in which sampling began is used.",
+    "Refers to the sample period in which the data falls; Periods include Annual, PeakBL, PostBL, SCTLD, and WS.",
+    "Monitoring location at which data was collected.",
+    "Date on which transects were filmed.",
+    "Total number of random assignment points analyzed for the transect.",
+    "Individual who performed the benthic cover analysis.",
+    "Date on which benthic cover analysis was done.",
+    "Transect number; typically 6 transects per site, but additional transects may have been filmed.",
+    "All remaining columns refer to individual benthic cover categories. Values reported in 'BenthicData2017-PresRAW' are point totals, while values in 'BenthicData' are calculated benthic cover.",
+    "Additional notes pertaining to benthic cover."
+  )
+)
+
+# Create the table
+benthic_cover_metadata %>%
+  kbl(caption = "TCRMP Benthic Cover Metadata") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left"
+  )
+
+```
+
+```{r,warning = FALSE, message = FALSE}
+# Notes as a data frame
+benthic_cover_notes <- data.frame(
+  ID = 1:9,
+  Note = c(
+    "Benthic transects are the same ones on which coral health metrics are recorded. Each is 10m in length, typically 6 per site, though additional transects may have been recorded.",
+    "Coral Point Count with Excel Extensions (CPCe) software was used for analysis through 2018. After 2018, random point assignment was done using R Studio.",
+    "The number of points per image has varied throughout the monitoring program: 10 (2001-2011), 15 (2012-2013), and 20 (2014-present).",
+    "Rhodolith (RO) was added as a benthic cover category in 2011.",
+    "Peyssonnelia sp (PEY) was added as a benthic cover category in 2014.",
+    "Ramicrusta sp (RAMI) was added as a benthic cover category in 2017.",
+    "Data in red indicates values were unable to be verified during QAQC because the original analysis file was missing or corrupted.",
+    "Stony Coral Tissue Loss Disease (SCTLD) was added as a coral condition category after its arrival in the US Virgin Islands in 2019.",
+    "Cells containing 'ND' indicate that there is no data recorded for that benthic category."
+  )
+)
+
+# Create the notes table
+benthic_cover_notes %>%
+  kbl(caption = "Additional Notes for TCRMP Benthic Cover Metadata") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "left"
+  )
+
+```
+
+
 ## Cliona Prevalence- Coral Health Data
 
-### *This code explains the data management/manipulation and graphical evidence Cliona prevalence for each TCRMP location*
+### *This code explains the data management/manipulation and graphical evidence of Cliona prevalence for each TCRMP location*
 
 1.  The data is read into R using `read_csv`, and then selected columns are extracted, specifically: `Period`, `SampleType`, `Location`, `SampleYear`, `Method`, `Transect`, `SPP`, `Cliona`, `Spo1`, `Spo1ID`, `Spo2ID`, and `Spo2`. This selection reduces the dataset to only the columns relevant to this analysis.
 
@@ -112,10 +325,11 @@ This plot is important because it reveals the variability in *Cliona* prevalence
 
 ```{r, fig.width=15, fig.height=8}
 # Convert SampleYear to numeric, if appropriate
-transectprev$SampleYear <- as.numeric(transectprev$SampleYear)
-
+# transectprev$SampleYear <- as.numeric(transectprev$SampleYear)
+transectprevnum<-transectprev
+transectprevnum$SampleYear <- as.numeric(transectprevnum$SampleYear)
 # Then plot with the updated variable
-ggplot(transectprev, aes(x = SampleYear, y = prev, color = factor(Transect), group = Transect)) +
+ggplot(transectprevnum, aes(x = SampleYear, y = prev, color = factor(Transect), group = Transect)) +
   geom_line() +
   geom_point() +
   facet_wrap(~Location, scales = "free_y") +
@@ -123,7 +337,7 @@ ggplot(transectprev, aes(x = SampleYear, y = prev, color = factor(Transect), gro
        x = "Year",
        y = "Prevalence",
        color = "Transect") +
-  scale_x_continuous(breaks = unique(transectprev$SampleYear), labels = unique(transectprev$SampleYear)) +
+  scale_x_continuous(breaks = unique(transectprevnum$SampleYear), labels = unique(transectprevnum$SampleYear)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5))
@@ -131,11 +345,153 @@ ggplot(transectprev, aes(x = SampleYear, y = prev, color = factor(Transect), gro
 
 This graph is valuable because it allows for temporal analysis of Cliona prevalence trends at multiple scales: across years, transects, and locations. By categegorising between the data by transect and location, the plot can reveal patterns, such as consistent increases or decreases in prevalence, or fluctuations in response to specific events or environmental changes. It could also be used to identify which transects or locations show higher susceptibility to Cliona over time.
 
+*Identifying Environmental Event Impact on Cliona Prevalence*
+
+
+
+9. Add binary or categorical variables to indicate these events
+```{r,warning = FALSE, message = FALSE}
+envvariable <- transectprev %>%
+  mutate(Bleaching = if_else(SampleYear %in% c(2010, 2023), 1, 0),
+         Hurricane = if_else(SampleYear %in% c(2017, 2019), 1, 0),
+         SCTLD = if_else(SampleYear == 2019, 1, 0))
+
+```
+
+In order to run a linear mixed effects model, i need the average size of corals grouped by site and year. But 2003-2005 does not have any measurements in the width column. meaning i must cut 2003-2005 out of this section of analysis. 
+
+
+```{r,warning = FALSE, message = FALSE}
+clionawidth<-raw_clio
+```
+
+
+```{r,warning = FALSE, message = FALSE}
+clionawidth <- clionawidth[!is.na(clionawidth$Width), ]
+
+
+```
+
+
+
+```{r,warning = FALSE, message = FALSE}
+coral_size_summary <- clionawidth %>%
+  group_by(Location, SampleYear, Transect) %>%
+  summarise(mean_volume = mean(Length * Width * Height, na.rm = TRUE),
+            mean_surface_area = mean(2 * (Length * Width + Width * Height + Height * Length), na.rm = TRUE),
+            .groups = "drop")
+   
+coral_size_summary <- coral_size_summary %>%
+  filter(!grepl("[A-Za-z]", Transect))
+
+coral_size_summary <- coral_size_summary %>%
+  filter(!Transect %in% c("7", "8"))
+
+coral_size_summary <- coral_size_summary %>%
+  mutate(SampleYear = as.factor(SampleYear))
+
+envvariable<- envvariable %>%
+  mutate(SampleYear = as.factor(SampleYear))
+
+envvariable <- envvariable %>%
+  left_join(coral_size_summary, by = c("Location", "SampleYear", "Transect"))
+
+```
+
+
+
+10. Running a linear mixed-effects model 
+```{r,warning = FALSE, message = FALSE}
+#You're gonna want to add temperature to the model. but that is gonna take a second
+envvariable <- envvariable %>%
+  mutate(mean_volume_scaled = scale(mean_volume))
+
+
+lmem <- lmer(prev ~ Bleaching + Hurricane + SCTLD + mean_volume_scaled +
+               (1 | Location) + (1 | SampleYear), 
+             data = envvariable)
+summary(lmem)
+
+
+```
+
+```{r,warning = FALSE, message = FALSE}
+# Extract rows used in the model
+model_data <- model.frame(lmem)
+
+# Generate predictions
+envvariable$predicted <- NA # Initialize a column for predictions
+envvariable$predicted[as.numeric(rownames(model_data))] <- predict(lmem)
+
+
+ggplot(envvariable, aes(x = predicted, y = prev)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "Predicted vs Observed Cliona Prevalence",
+       x = "Predicted Prevalence",
+       y = "Observed Prevalence") +
+  theme_minimal()
+
+
+```
+
+The results of the linear mixed-effects model indicate that coral size, represented by the rescaled variable mean_volume_scaled, is a significant predictor of Cliona sponge prevalence. Specifically, for every one standard deviation increase in coral volume, Cliona prevalence increases by approximately 0.0044 units. This finding suggests that larger corals are more likely to host Cliona sponges, potentially due to increased surface area or habitat availability. This relationship was statistically significant, with a t-value of 3.635, highlighting coral size as an important factor influencing Cliona colonization patterns.
+
+In contrast, environmental events such as bleaching, hurricanes, and SCTLD did not show significant effects on Cliona prevalence in this model. While bleaching showed a slight positive association and SCTLD a small negative association, neither effect was strong enough to be statistically significant. This suggests that, at least within this dataset, these environmental disturbances may not be major drivers of Cliona sponge colonization patterns. Additionally, the random effects for location and year showed minimal variability, indicating that the fixed effects in the model largely explain the observed differences in Cliona prevalence.
+
+The rescaling of coral size improved the model's stability and interpretability, as evidenced by a lower restricted maximum likelihood (REML) criterion compared to the original model. The scaled variable allowed for a more meaningful comparison of effect sizes among predictors, showing that coral size is the primary driver of Cliona prevalence in this analysis. These results highlight the importance of considering coral morphology in understanding sponge-coral interactions, while also suggesting that environmental disturbances may have less influence than previously hypothesized. Future analyses could refine these findings by incorporating additional environmental or site-specific variables
+
+
+11. Running a Generalized Linear Model 
+
+```{r,warning = FALSE, message = FALSE}
+# Run a Generalized Linear Model (GLM)
+glm_model <- glm(prev ~ Bleaching + Hurricane + SCTLD + mean_volume_scaled,
+                 data = envvariable, family = quasibinomial)
+summary(glm_model)
+
+
+```
+
+```{r,warning = FALSE, message = FALSE}
+
+# Extract rows used in the model
+model_data <- model.frame(glm_model)
+
+# Generate predicted probabilities
+predicted_values <- predict(glm_model, type = "response")
+
+# Add a predicted column with NA for unmatched rows
+envvariable$predicted <- NA
+envvariable$predicted[as.numeric(rownames(model_data))] <- predicted_values
+
+
+# Plot predicted vs observed prevalence
+ggplot(envvariable, aes(x = predicted, y = prev)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "Predicted vs Observed Cliona Prevalence",
+       x = "Predicted Prevalence",
+       y = "Observed Prevalence") +
+  theme_minimal()
+
+# Effect of Bleaching
+ggplot(envvariable, aes(x = factor(Bleaching), y = predicted)) +
+  geom_boxplot() +
+  labs(title = "Effect of Bleaching on Predicted Cliona Prevalence",
+       x = "Bleaching Event (0 = No, 1 = Yes)",
+       y = "Predicted Prevalence") +
+  theme_minimal()
+
+```
+
+
+
 Spencer Parr
 
 ## Cliona Prevalence by Reef Complex
 
-### *This code shows the process of cleaning, graphing, and analyzing the coral health data in order to find if there is any significant difference in Cliona prevalence between Nearshore, Offshore, and Mesophotic sites.* 
+### *This code shows the process of cleaning, graphing, and analyzing the coral health data in order to find if there is any significant difference in Cliona prevalence between Nearshore, Offshore, and Mesophotic sites.*
 
 1.  revert back to Coral Prevalence- Coral Health Data tab, steps 1-5 are identical
 
@@ -347,7 +703,7 @@ Spencer Parr
 
 ## Cliona Extent
 
-### *This code explains the data management/manipulation and graphical evidence Cliona extent for each TCRMP location*
+### *This code explains the data management/manipulation and graphical evidence of Cliona extent for each TCRMP location*
 
 1.  The data is read into R using `read_csv`, and then selected columns are extracted, specifically: `Period`, `SampleType`, `Location`, `SampleYear`, `Method`, `Transect`, `SPP`, `Cliona`, `Spo1`, `Spo1ID`, `Spo2ID`, and `Spo2`. This selection reduces the dataset to only the columns relevant to this analysis.
 
