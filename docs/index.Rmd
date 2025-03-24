@@ -24,10 +24,13 @@ library(multcompView)
 library(knitr)
 library(kableExtra)
 library(lme4)
+library(pwr)
 
 
 raw_clio <- read_csv("../Cliona.csv") #load data
 ```
+
+
 
 # *Spencer Parr Thesis Analysis* {.tabset}
 
@@ -257,10 +260,6 @@ benthic_cover_notes %>%
 
 ```
 
-
-
-
-
 ## Cliona Prevalence- Coral Health Data
 
 ### *This code explains the data management/manipulation and graphical evidence of Cliona prevalence for each TCRMP location*
@@ -368,8 +367,6 @@ clionawidth<-raw_clio
 
 ```{r,warning = FALSE, message = FALSE}
 clionawidth <- clionawidth[!is.na(clionawidth$Width), ]
-
-
 ```
 
 ```{r,warning = FALSE, message = FALSE}
@@ -400,7 +397,7 @@ envvariable <- envvariable %>%
 
 Accounts for random effects
 
-```{r,warning = FALSE, message = FALSE}
+```{r, warning = FALSE, message = FALSE}
 #You're gonna want to add temperature to the model. but that is gonna take a second
 envvariable <- envvariable %>%
   mutate(mean_volume_scaled = scale(mean_volume))
@@ -527,12 +524,11 @@ qqline(resid(lmem))
 
 Spencer Parr
 
-
 ## Data Exclusion-Coral Health/Detection Probability
 
 ### *This Code provides reasoning to why excluding coral species with minimal total observations is needed for accurate data analysis*
 
-1. After data manipulation stage (which is fully described in "Cliona Prevalence- Coral Health Data" section) the first step is to create a binary presence column for Cliona. which creates a new column, indicating whether a Cliona sponge was detected for every single coral observation beginning in 2005-2024, this accumulates to 56,605 total observations. Logic: Extracts only species (SPP) and Cliona presence (presence).
+1.  After data manipulation stage (which is fully described in "Cliona Prevalence- Coral Health Data" section) the first step is to create a binary presence column for Cliona. which creates a new column, indicating whether a Cliona sponge was detected for every single coral observation beginning in 2005-2024, this accumulates to 56,605 total observations. Extracts only species (SPP) and Cliona presence (presence).
 
 ```{r,warning = FALSE, message = FALSE}
 #Subset into a data frame that only has SPP and Cliona presence 
@@ -540,7 +536,7 @@ Spencer Parr
 cliona_subset <- cliona %>% select(SPP, presence)
 ```
 
-2. Next I group the data by coral species (SPP), counts the total number of observations per species (n()), and arranges species in descending order by total observations.
+2.  Next I group the data by coral species (SPP), counts the total number of observations per species (n()), and arranges species in descending order by total observations.
 
 ```{r,warning = FALSE, message = FALSE}
 # Count the total observations per coral species
@@ -550,7 +546,7 @@ species_counts <- cliona_subset %>%
   arrange(desc(total_observations))
 ```
 
-3. Then I determined the proportion of observations each species represents. Which is the total observations of each coral species divided by the the total of all coral observations (56,605)
+3.  Then I determined the proportion of observations each species represents. Which is the total observations of each coral species divided by the the total of all coral observations (56,605)
 
 ```{r,warning = FALSE, message = FALSE}
 # Calculate the proportion of observations per species
@@ -558,7 +554,7 @@ species_proportion <- species_counts %>%
   mutate(proportion_observed = total_observations / sum(total_observations))
 ```
 
-4. Next, I count how many times Cliona is present for each species. Logic: presence = 1 (Cliona detected), presence = 0 (No Cliona detected), na.rm = TRUE ensures that missing values don't affect calculations.
+4.  Next, I count how many times Cliona is present for each species. Logic: presence = 1 (Cliona detected), presence = 0 (No Cliona detected), na.rm = TRUE ensures that missing values don't affect calculations.
 
 ```{r,warning = FALSE, message = FALSE}
 #Count the Total Cliona Occurrences Per Species
@@ -568,7 +564,7 @@ cliona_presence_counts <- cliona_subset %>%
   summarise(cliona_present = sum(presence, na.rm = TRUE))
 ```
 
-5. Next step is to merge species_counts (total observations per species) with cliona_presence_counts (total Cliona occurrences). And calculate the proportion of Cliona presence per species (cliona_present / total_observations). 
+5.  Next step is to merge species_counts (total observations per species) with cliona_presence_counts (total Cliona occurrences). And calculate the proportion of Cliona presence per species (cliona_present / total_observations).
 
 ```{r,warning = FALSE, message = FALSE}
 # Merge with total species observations
@@ -578,28 +574,30 @@ species_cliona_prob <- species_counts %>%
 ```
 
 ### The Next Steps are on running Power Analysis
-The dataset contains observations of Cliona prevalence across multiple coral species. However, some species may have very few observations, which makes statistical inference unreliable. If a species has too few observations, we might miss detecting Cliona even if it is present which is a Type II error (failing to reject a false null hypothesis). If a species has sufficient observations, we can be statistically confident in estimating Cliona prevalence. Thus, power analysis helps determine how many observations are needed per species to ensure reliable estimates of Cliona prevalence. 
 
-6. (Cohen’s h) is a statistical measure of the difference between two proportions. It is calculated using the arcsine transformation, which stabilizes variance when dealing with proportions. The formula used is: 
+The dataset contains observations of Cliona prevalence across multiple coral species. However, some species may have very few observations, which makes statistical inference unreliable. If a species has too few observations, we might miss detecting Cliona even if it is present which is a Type II error (failing to reject a false null hypothesis). If a species has sufficient observations, we can be statistically confident in estimating Cliona prevalence. Thus, power analysis helps determine how many observations are needed per species to ensure reliable estimates of Cliona prevalence.
+
+6.  (Cohen’s h) is a statistical measure of the difference between two proportions. It is calculated using the arcsine transformation, which stabilizes variance when dealing with proportions. The formula used is:
 
 $$
 h = 2 \times \left( \asin \left( \sqrt{p_1} \right) - \asin \left( \sqrt{p_2} \right) \right)
 $$
 
-7. Next step is to define the smallest Cliona prevalence worth detecting. The variable p1 is set to 0.004, which represents the smallest Cliona prevalence that is considered biologically meaningful for detection.
+7.  Next step is to define the smallest Cliona prevalence worth detecting. The variable p1 is set to 1% (0.01) prevalence.
+
 ```{r,warning = FALSE, message = FALSE}
 # Define expected prevalence rates
-p1 <- 0.004  # Smallest Cliona prevalence worth detecting
+p1 <- 0.01  # Smallest Cliona prevalence worth detecting
 ```
 
-8. Then, we need to calculate the average prevalence of Cliona across all species. The variable p2 is computed as the mean Cliona prevalence across all coral species where Cliona has been observed at least once. The na.rm = TRUE ensures that missing values do not interfere with the calculation.
+8.  Then, we need to calculate the average prevalence of Cliona across all species. The variable p2 is computed as the mean Cliona prevalence across all coral species where Cliona has been observed at least once. The na.rm = TRUE ensures that missing values do not interfere with the calculation.
 
 ```{r,warning = FALSE, message = FALSE}
 #the lowest prevalence of cliona that has more than 1 observation for that coral species
 p2 <- mean(species_cliona_prob$cliona_probability[species_cliona_prob$cliona_probability > 0], na.rm = TRUE)
 ```
 
-9. Next we define the arcsign coefficient equation an run the power analysis. The function pwr.p.test() is used to determine how many observations per species are needed to detect Cliona with 80% power (power = 0.8) at a 5% significance level (sig.level = 0.05). The absolute value of h_effect_size is used as the effect size in the calculation.
+9.  Next we define the arcsign coefficient equation an run the power analysis. The function pwr.p.test() is used to determine how many observations per species are needed to detect Cliona with 80% power (power = 0.8) at a 5% significance level (sig.level = 0.05). The absolute value of h_effect_size is used as the effect size in the calculation.
 
 ```{r,warning = FALSE, message = FALSE}
 # Calculate Cohen's h effect size
@@ -615,7 +613,7 @@ The result of the power analysis suggests that at least 157 observations per spe
 print(power_result$n)
 ```
 
-10. Once we got a result, we need to set a threshold to filter species with insufficient observations. The threshold for filtering species is determined using ceiling(power_result$n), which rounds up the required sample size to the nearest whole number.
+10. Once we got a result, we need to set a threshold to filter species with insufficient observations. The threshold for filtering species is determined using ceiling(power_result\$n), which rounds up the required sample size to the nearest whole number.
 
 ```{r,warning = FALSE, message = FALSE}
 # Define threshold based on power analysis
@@ -630,7 +628,7 @@ filtered_species <- species_cliona_prob %>%
   filter(total_observations >= ceiling(power_result$n))
 ```
 
-12. Next is to load in site depth data from an external file and filter the cliona dataset so that only the species that passed the previous filtering step (those with a sufficient number of observations) are kept. Then summarize Cliona prevalence by location and species. And finally merge the depth and cliona data set. 
+12. Next is to load in site depth data from an external file and filter the cliona dataset so that only the species that passed the previous filtering step (those with a sufficient number of observations) are kept. Then summarize Cliona prevalence by location and species. And finally merge the depth and cliona data set.
 
 ```{r,warning = FALSE, message = FALSE}
 # Load site depth data (Assuming depth data is in "SiteMetadata.csv")
@@ -657,8 +655,7 @@ location_species_summary <- location_species_summary %>%
   left_join(site_metadata, by = "Location")  
 ```
 
-
-13. the next step is to visualize this data. I used two different methods to visualize the if depth has an impact on Cliona prevalence. 
+13. the next step is to visualize this data. I used two different methods to visualize the if depth has an impact on Cliona prevalence.
 
 ```{r, fig.width=15, fig.height=8}
 ggplot(location_species_summary, aes(x = Depth, y = Cliona_Prevalence, color = SPP)) +
@@ -671,10 +668,319 @@ ggplot(location_species_summary, aes(x = Depth, y = Cliona_Prevalence, color = S
   theme_minimal()
 ```
 
+## Species Specific at Nearshore DEEP STX & Offshore DEEP STT/STJ
+
+```{r, warning = FALSE, message = FALSE}
+# Load site metadata (Depth category and region info)
+site_metadata <- read_csv("TCRMP_SiteMetadata.csv") %>%
+  select(Location, Depth, ReefComplex, Island)  # Include ReefComplex and Island
+
+# Merge Cliona data with site metadata
+cliona_filtered <- location_species_summary %>%
+  left_join(site_metadata, by = "Location")
+
+# **Split Data by Region: STT/STJ vs. STX**
+cliona_filtered <- cliona_filtered %>%
+  mutate(ReefComplex_Region = case_when(
+    Island == "STT" | Island == "STJ" ~ paste0("STT/STJ - ", ReefComplex),
+    Island == "STX" ~ paste0("STX - ", ReefComplex),
+    TRUE ~ "Other"
+  ))
+
+```
+
+### **Compare Cliona Prevalence at Nearshore Deep vs. Offshore Deep Sites**
+
+```{r,fig.width=15, fig.height=8}
+deep_sites <- cliona_filtered %>%
+  filter(ReefComplex %in% c("Nearshore", "Offshore") & Depth.x >= 15)  # Adjust depth threshol
+
+
+# Plot Cliona prevalence by ReefComplex
+ggplot(deep_sites, aes(x = ReefComplex, y = Cliona_Prevalence, fill = ReefComplex)) +
+  geom_boxplot(alpha = 0.6) +
+  facet_wrap(~Island) +  # Separate by region (St. Thomas/St. John vs. St. Croix)
+  labs(title = "Cliona Prevalence in Nearshore vs. Offshore Deep Sites",
+       x = "Reef Complex",
+       y = "Cliona Prevalence") +
+  theme_minimal()
+```
+
+### **Plot Cliona Prevalence by Reef Complex (STT/STJ vs. STX) and Coral Species**
+
+```{r, fig.width=15, fig.height=8}
+ggplot(deep_sites, aes(x = ReefComplex_Region, y = Cliona_Prevalence, fill = ReefComplex_Region)) +
+  geom_boxplot(alpha = 0.6) +
+  facet_wrap(~SPP, scales = "free_y") +  # Separate by coral species
+  labs(title = "Cliona Prevalence by Reef Complex and Coral Species",
+       x = "Reef Complex (Region)",
+       y = "Cliona Prevalence",
+       fill = "Reef Complex (Region)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# Check the dataset
+head(deep_sites)
+
+```
+
+### **ANOVA + Tukey HSD**
+
+ANOVA: Does prevalence differ by reef complex region? F(2, 120) = 10.45, p < 0.001 #There is a statistically significant difference in Cliona prevalence between at least two of the reef complex region groups.
+
+```{r, warning = FALSE, message = FALSE}
+# ANOVA: Does prevalence differ by reef complex region?
+anova_result <- aov(Cliona_Prevalence ~ ReefComplex_Region, data = deep_sites)
+summary(anova_result)
+
+# Post-hoc test: Tukey HSD
+tukey_result <- TukeyHSD(anova_result)
+print(tukey_result)
+
+```
+
+STX Nearshore sites have significantly higher Cliona prevalence compared to both STX Offshore and STT/STJ Offshore reefs.There is no significant difference between STX Offshore and STT/STJ Offshore, suggesting the offshore zones across islands are more similar in Cliona prevalence.This supports a depth × reef zone interaction hypothesis — perhaps driven by environmental gradients (e.g., light, nutrients, stress) unique to STX nearshore reefs.
+
+### **Plot Anova**
+
+```{r, warning = FALSE, message = FALSE}
+# Load necessary libraries
+pacman::p_load(ggplot2, dplyr, multcompView, agricolae, tidyr)
+
+# Run ANOVA
+aov_result <- aov(Cliona_Prevalence ~ ReefComplex_Region, data = deep_sites)
+
+# Run Tukey HSD and assign group letters
+hsd_letters <- HSD.test(aov_result, "ReefComplex_Region", group = TRUE)
+
+# View the groups with assigned letters
+print(hsd_letters$groups)
+
+# Calculate means and standard errors for each group
+means <- deep_sites %>%
+  group_by(ReefComplex_Region) %>%
+  summarise(
+    mean = mean(Cliona_Prevalence, na.rm = TRUE),
+    se = sd(Cliona_Prevalence, na.rm = TRUE) / sqrt(n())
+  ) %>%
+  # Merge HSD group letters
+  left_join(
+    hsd_letters$groups %>% rownames_to_column("ReefComplex_Region"),
+    by = "ReefComplex_Region"
+  )
+
+
+```
+
+```{r, fig.width=15, fig.height=8}
+ggplot(means, aes(x = ReefComplex_Region, y = mean, fill = ReefComplex_Region)) + geom_bar(stat = "identity", width = 0.6, alpha = 0.7, color = "black") + geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.2) + geom_text(aes(label = groups, y = mean + se + 0.01), vjust = 0, size = 5) + labs(title = "Cliona Prevalence by Reef Complex Region", x = "Reef Complex Region", y = "Mean Cliona Prevalence") + theme_minimal() + theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.title = element_text(size = 16, face = "bold"))
+```
+
+### **GLM with Interaction Term: Depth \* ReefComplex**
+
+
+```{r, warning = FALSE}
+glm_interaction <- glm(Cliona_Prevalence ~ Depth.x * ReefComplex_Region, family = quasibinomial, data = cliona_filtered)
+
+summary(glm_interaction)
+```
+
+In offshore reefs (STT/STJ and STX), Cliona prevalence decreases significantly with depth, as shown by the negative and significant interaction terms.The effect of depth is not significant, meaning Cliona may be more uniformly distributed across depths in those zones. This supports the hypothesis that reef type moderates the impact of depth on Cliona.
+
+```{r}
+pacman::p_load(emmeans, broom)
+
+# Fit interaction model (already done)
+
+glm_interaction <- glm(Cliona_Prevalence ~ Depth.x * ReefComplex_Region, family = quasibinomial, data = cliona_filtered) 
+```
+
+
+### **Visualize predicted trends**
+
+
+```{r}
+# Create a depth sequence
+depth_seq <- seq(min(cliona_filtered$Depth.x, na.rm = TRUE),
+                 max(cliona_filtered$Depth.x, na.rm = TRUE), 
+                 length.out = 100)
+
+# Create a prediction grid
+pred_grid <- expand.grid(
+  Depth.x = depth_seq,
+  ReefComplex_Region = unique(cliona_filtered$ReefComplex_Region)
+)
+
+# Add predicted values from your interaction model (replace with your actual model name)
+pred_grid$predicted <- predict(glm_interaction, 
+                               newdata = pred_grid, 
+                               type = "response")
+
+```
+
+```{r, fig.width=15, fig.height=8}
+ggplot(cliona_filtered, aes(x = Depth.x, y = Cliona_Prevalence, color = ReefComplex_Region)) +
+  geom_point(alpha = 0.4) +
+  geom_line(data = pred_grid, 
+            aes(x = Depth.x, y = predicted, color = ReefComplex_Region), 
+            size = 1.2) +
+  labs(title = "Predicted Cliona Prevalence vs. Depth",
+       x = "Depth (m)",
+       y = "Predicted Cliona Prevalence") +
+  theme_minimal()
+
+```
+
+
+### **Compare with simpler model**
+
+```{r, warning = FALSE, message = FALSE}
+glm_simple <- glm(Cliona_Prevalence ~ Depth.x + ReefComplex_Region, family = quasibinomial, data = cliona_filtered)
+
+anova(glm_simple, glm_interaction, test = "Chisq") # Likelihood ratio test
+```
+
+The model with the Depth.x * ReefComplex_Region interaction is significantly better than the simpler additive model. This confirms that the effect of depth depends on the reef zone/region, and you were right to include that interaction term.
+
+
+### **Estimated marginal means**
+
+
+```{r, warning = FALSE}
+emm <- emmeans(glm_interaction, ~ ReefComplex_Region | Depth.x, at = list(Depth.x = c(5, 15, 30)))
+
+
+summary(emm)
+
+emmip(glm_interaction, ReefComplex_Region ~ Depth.x, cov.reduce = range, CIs = TRUE) + labs(title = "Estimated Cliona Prevalence by Reef Complex Region", x = "Depth (m)", y = "Estimated Cliona Prevalence") + theme_minimal()
+
+```
+
+All values are on the logit scale (log-odds of Cliona prevalence). As depth increases, Cliona prevalence (logit) drops sharply in most reef complexes, particularly STT/STJ - Offshore and STX - Offshore.Some groups (like STT/STJ - Nearshore at 30 m) show very wide CIs, suggesting high uncertainty (likely due to sparse data there).
+
+
+### **back-transform the logits to prevalence**
+
+Back-transforming logits to probability scale
+```{r,warning = FALSE }
+emm_df <- as.data.frame(emm)
+emm_df$probability <- plogis(emm_df$emmean)
+
+```
+
+
+### Plot
+
+```{r, fig.width=15, fig.height=8}
+ggplot(emm_df, aes(x = as.factor(Depth.x), y = probability, fill = ReefComplex_Region)) + geom_col(position = position_dodge(width = 0.8)) + geom_errorbar(aes(ymin = plogis(asymp.LCL), ymax = plogis(asymp.UCL)), width = 0.2, position = position_dodge(width = 0.8)) + labs(title = "Estimated Cliona Prevalence by Depth and Reef Complex Region", x = "Depth (m)", y = "Estimated Prevalence") + theme_minimal() + theme(axis.text.x = element_text(size = 12), plot.title = element_text(hjust = 0.5, face = "bold"))
+```
+
+This plot visualizes estimated Cliona prevalence across different depths (5, 15, and 30 meters) and reef complex regions, showing how sponge prevalence varies with both reef zone and geographic region (STT/STJ vs. STX) Cliona prevalence is generally highest in shallow offshore sites, particularly at 5–15 m. Mesophotic and some nearshore zones have high uncertainty—indicating a need for more targeted sampling in those regions.
 
 
 
 
+## Looking Closer at Depth/Distnace from shore vs. Cliona Prevalence
+
+
+```{r, warning = FALSE, message = FALSE}
+# Load depth metadata
+site_metadata <- read_csv("TCRMP_SiteMetadata.csv") %>%
+  select(Location, Depth, ReefComplex, Island)
+
+# Load distance-from-shore metadata
+site_impact <- read_csv("site_impact.csv") %>%
+  select(Location, Distance)
+
+# Merge both metadata sources
+site_metadata <- site_metadata %>%
+  left_join(site_impact, by = "Location") %>%
+  rename(Distance_from_Shore = Distance)
+
+```
+
+
+```{r, warning = FALSE, message = FALSE}
+# Join location_species_summary (species-level prevalence) with site info
+species_level_data <- location_species_summary %>%
+  select(-Depth) %>%  # Drop old/conflicting Depth column if it exists
+  left_join(site_metadata, by = "Location") %>%
+  filter(ReefComplex %in% c("Nearshore", "Offshore"), Depth >= 15) %>%
+  mutate(ReefComplex_Region = case_when(
+    Island %in% c("STT", "STJ") ~ paste0("STT/STJ - ", ReefComplex),
+    Island == "STX" ~ paste0("STX - ", ReefComplex),
+    TRUE ~ NA_character_
+  ))
+
+```
+
+
+```{r, fig.width=15, fig.height=8}
+# 1. Depth vs Cliona prevalence (by coral species)
+ggplot(species_level_data, aes(x = Depth, y = Cliona_Prevalence, color = SPP)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~SPP, scales = "free_y") +
+  labs(title = "Depth vs Cliona Prevalence by Coral Species",
+       x = "Depth (m)", y = "Cliona Prevalence") +
+  theme_minimal()
+
+# 2. Distance from shore vs Cliona prevalence (by coral species)
+ggplot(species_level_data, aes(x = Distance_from_Shore, y = Cliona_Prevalence, color = SPP)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~SPP, scales = "free_y") +
+  labs(title = "Distance from Shore vs Cliona Prevalence by Coral Species",
+       x = "Distance from Shore (m)", y = "Cliona Prevalence") +
+  theme_minimal()
+
+# 3. Depth vs Cliona prevalence (site level)
+site_level_data <- species_level_data %>%
+  group_by(Location, Depth) %>%
+  summarise(Cliona_Prevalence = mean(Cliona_Prevalence, na.rm = TRUE), .groups = "drop")
+
+ggplot(site_level_data, aes(x = Depth, y = Cliona_Prevalence)) +
+  geom_point(color = "darkblue", size = 3, alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, color = "black") +
+  labs(title = "Depth vs Cliona Prevalence by Site",
+       x = "Depth (m)", y = "Mean Cliona Prevalence") +
+  theme_minimal()
+
+# 4. Distance from shore vs Cliona prevalence (site level)
+site_level_distance <- species_level_data %>%
+  group_by(Location, Distance_from_Shore) %>%
+  summarise(Cliona_Prevalence = mean(Cliona_Prevalence, na.rm = TRUE), .groups = "drop")
+
+ggplot(site_level_distance, aes(x = Distance_from_Shore, y = Cliona_Prevalence)) +
+  geom_point(color = "darkgreen", size = 3, alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, color = "black") +
+  labs(title = "Distance from Shore vs Cliona Prevalence by Site",
+       x = "Distance from Shore (m)", y = "Mean Cliona Prevalence") +
+  theme_minimal()
+```
+
+
+### Grouped plot
+```{r, fig.width=15, fig.height=8}
+# Group and summarize prevalence for each coral species within each reef complex region
+grouped_prevalence <- species_level_data %>%
+  filter(ReefComplex_Region %in% c("STX - Nearshore", "STX - Offshore", "STT/STJ - Offshore")) %>%
+  group_by(ReefComplex_Region, SPP) %>%
+  summarise(mean_prevalence = mean(Cliona_Prevalence, na.rm = TRUE), .groups = "drop")
+
+# Plot the prevalence by coral species and reef complex region
+ggplot(grouped_prevalence, aes(x = SPP, y = mean_prevalence, fill = ReefComplex_Region)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7)) +
+  labs(title = "Cliona Prevalence by Coral Species and Reef Complex Region",
+       x = "Coral Species",
+       y = "Mean Cliona Prevalence",
+       fill = "Region") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+
+########################################################################### 
 
 ## Cliona Prevalence by Reef Complex
 
