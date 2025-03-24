@@ -258,6 +258,9 @@ benthic_cover_notes %>%
 ```
 
 
+
+
+
 ## Cliona Prevalence- Coral Health Data
 
 ### *This code explains the data management/manipulation and graphical evidence of Cliona prevalence for each TCRMP location*
@@ -347,9 +350,8 @@ This graph is valuable because it allows for temporal analysis of Cliona prevale
 
 *Identifying Environmental Event Impact on Cliona Prevalence*
 
+9.  Add binary or categorical variables to indicate these events
 
-
-9. Add binary or categorical variables to indicate these events
 ```{r,warning = FALSE, message = FALSE}
 envvariable <- transectprev %>%
   mutate(Bleaching = if_else(SampleYear %in% c(2010, 2023), 1, 0),
@@ -358,21 +360,17 @@ envvariable <- transectprev %>%
 
 ```
 
-In order to run a linear mixed effects model, i need the average size of corals grouped by site and year. But 2003-2005 does not have any measurements in the width column. meaning i must cut 2003-2005 out of this section of analysis. 
-
+In order to run a linear mixed effects model, i need the average size of corals grouped by site and year. But 2003-2005 does not have any measurements in the width column. meaning i must cut 2003-2005 out of this section of analysis.
 
 ```{r,warning = FALSE, message = FALSE}
 clionawidth<-raw_clio
 ```
-
 
 ```{r,warning = FALSE, message = FALSE}
 clionawidth <- clionawidth[!is.na(clionawidth$Width), ]
 
 
 ```
-
-
 
 ```{r,warning = FALSE, message = FALSE}
 coral_size_summary <- clionawidth %>%
@@ -398,9 +396,10 @@ envvariable <- envvariable %>%
 
 ```
 
+10. Running a linear mixed-effects model
 
+Accounts for random effects
 
-10. Running a linear mixed-effects model 
 ```{r,warning = FALSE, message = FALSE}
 #You're gonna want to add temperature to the model. but that is gonna take a second
 envvariable <- envvariable %>%
@@ -435,14 +434,13 @@ ggplot(envvariable, aes(x = predicted, y = prev)) +
 
 ```
 
-The results of the linear mixed-effects model indicate that coral size, represented by the rescaled variable mean_volume_scaled, is a significant predictor of Cliona sponge prevalence. Specifically, for every one standard deviation increase in coral volume, Cliona prevalence increases by approximately 0.0044 units. This finding suggests that larger corals are more likely to host Cliona sponges, potentially due to increased surface area or habitat availability. This relationship was statistically significant, with a t-value of 3.635, highlighting coral size as an important factor influencing Cliona colonization patterns.
+The results of the linear mixed-effects model indicate that coral size, represented by the scaled variable mean_volume_scaled, is a significant predictor of Cliona sponge prevalence. For every one standard deviation increase in coral size, Cliona prevalence increases by approximately 0.0045 units, highlighting the importance of larger corals as suitable habitats for Cliona sponges. In contrast, environmental events such as bleaching, hurricanes, and SCTLD showed no significant effects on Cliona prevalence in this dataset, suggesting these disturbances may not be primary drivers of Cliona colonization patterns.
 
-In contrast, environmental events such as bleaching, hurricanes, and SCTLD did not show significant effects on Cliona prevalence in this model. While bleaching showed a slight positive association and SCTLD a small negative association, neither effect was strong enough to be statistically significant. This suggests that, at least within this dataset, these environmental disturbances may not be major drivers of Cliona sponge colonization patterns. Additionally, the random effects for location and year showed minimal variability, indicating that the fixed effects in the model largely explain the observed differences in Cliona prevalence.
+The random effects for location and year showed minimal variability, indicating that most of the observed trends in Cliona prevalence are explained by the fixed effects, particularly coral size. While the model provides a good fit to the data, the lack of significance for environmental predictors implies that other factors, beyond these disturbances, might better explain spatial and temporal variations in Cliona prevalence.
 
-The rescaling of coral size improved the model's stability and interpretability, as evidenced by a lower restricted maximum likelihood (REML) criterion compared to the original model. The scaled variable allowed for a more meaningful comparison of effect sizes among predictors, showing that coral size is the primary driver of Cliona prevalence in this analysis. These results highlight the importance of considering coral morphology in understanding sponge-coral interactions, while also suggesting that environmental disturbances may have less influence than previously hypothesized. Future analyses could refine these findings by incorporating additional environmental or site-specific variables
+11. Running a Generalized Linear Model
 
-
-11. Running a Generalized Linear Model 
+Does not include random effects, meaning all variability is attributed to the fixed effects
 
 ```{r,warning = FALSE, message = FALSE}
 # Run a Generalized Linear Model (GLM)
@@ -485,9 +483,198 @@ ggplot(envvariable, aes(x = factor(Bleaching), y = predicted)) +
 
 ```
 
+The GLM results indicate that both Bleaching and SCTLD significantly influence Cliona prevalence, while Hurricane does not. Specifically, bleaching events are associated with a significant increase in Cliona prevalence (Estimate=0.34027,𝑝=0.0119), suggesting that bleaching may create favorable conditions for Cliona colonization. Conversely, SCTLD has a significant negative association (Estimate=−0.49597,𝑝=0.0219), implying that disease outbreaks may reduce Cliona prevalence, possibly due to mortality or competitive dynamics. Coral size, represented by the scaled variable mean_volume_scaled, is also highly significant (Estimate=0.09563,𝑝=3.41×10 −7), with larger corals being more likely to host Cliona sponges. The intercept (Estimate=−3.32425, p\<2×10−16) reflects the baseline log-odds of Cliona prevalence in the absence of environmental events and at the average coral size. The model explains a small reduction in deviance from the null model (Null Deviance = 265.71 to Residual Deviance = 261.60), suggesting moderate explanatory power. Overall, this analysis highlights coral size as the strongest predictor of Cliona prevalence, with environmental disturbances like bleaching and SCTLD also playing significant but contrasting roles.
 
+```{r}
+ggplot(envvariable, aes(x = mean_volume_scaled)) + geom_histogram(binwidth = 0.5) + labs(title = "Histogram of Coral Volume (Scaled)")
+ggplot(envvariable, aes(x = prev)) + geom_histogram(binwidth = 0.02) + labs(title = "Histogram of Cliona Prevalence")
+
+
+```
+
+Compare the fixed effects (coefficients) for predictors like Bleaching, SCTLD, and mean_volume_scaled in both models to check for consistency
+
+```{r}
+# Extract coefficients for GLM
+glm_coef <- coef(summary(glm_model))
+
+# Extract coefficients for LME
+lme_coef <- fixef(lmem)
+
+# Print side-by-side comparison
+glm_coef
+lme_coef
+
+```
+
+Examine the residuals to ensure the models fit the data
+
+GLM Residuals
+
+```{r}
+plot(glm_model, which = 1)  # Residuals vs. Fitted
+
+```
+
+LME Residuals
+
+```{r}
+plot(lmem)  # Residuals for LME
+qqnorm(resid(lmem))  # Q-Q plot
+qqline(resid(lmem))
+
+```
 
 Spencer Parr
+
+
+## Data Exclusion-Coral Health/Detection Probability
+
+### *This Code provides reasoning to why excluding coral species with minimal total observations is needed for accurate data analysis*
+
+1. After data manipulation stage (which is fully described in "Cliona Prevalence- Coral Health Data" section) the first step is to create a binary presence column for Cliona. which creates a new column, indicating whether a Cliona sponge was detected for every single coral observation beginning in 2005-2024, this accumulates to 56,605 total observations. Logic: Extracts only species (SPP) and Cliona presence (presence).
+
+```{r,warning = FALSE, message = FALSE}
+#Subset into a data frame that only has SPP and Cliona presence 
+
+cliona_subset <- cliona %>% select(SPP, presence)
+```
+
+2. Next I group the data by coral species (SPP), counts the total number of observations per species (n()), and arranges species in descending order by total observations.
+
+```{r,warning = FALSE, message = FALSE}
+# Count the total observations per coral species
+species_counts <- cliona_subset %>%
+  group_by(SPP) %>%
+  summarise(total_observations = n()) %>%
+  arrange(desc(total_observations))
+```
+
+3. Then I determined the proportion of observations each species represents. Which is the total observations of each coral species divided by the the total of all coral observations (56,605)
+
+```{r,warning = FALSE, message = FALSE}
+# Calculate the proportion of observations per species
+species_proportion <- species_counts %>%
+  mutate(proportion_observed = total_observations / sum(total_observations))
+```
+
+4. Next, I count how many times Cliona is present for each species. Logic: presence = 1 (Cliona detected), presence = 0 (No Cliona detected), na.rm = TRUE ensures that missing values don't affect calculations.
+
+```{r,warning = FALSE, message = FALSE}
+#Count the Total Cliona Occurrences Per Species
+
+cliona_presence_counts <- cliona_subset %>%
+  group_by(SPP) %>%
+  summarise(cliona_present = sum(presence, na.rm = TRUE))
+```
+
+5. Next step is to merge species_counts (total observations per species) with cliona_presence_counts (total Cliona occurrences). And calculate the proportion of Cliona presence per species (cliona_present / total_observations). 
+
+```{r,warning = FALSE, message = FALSE}
+# Merge with total species observations
+species_cliona_prob <- species_counts %>%
+  left_join(cliona_presence_counts, by = "SPP") %>%
+  mutate(cliona_probability = cliona_present / total_observations)
+```
+
+### The Next Steps are on running Power Analysis
+The dataset contains observations of Cliona prevalence across multiple coral species. However, some species may have very few observations, which makes statistical inference unreliable. If a species has too few observations, we might miss detecting Cliona even if it is present which is a Type II error (failing to reject a false null hypothesis). If a species has sufficient observations, we can be statistically confident in estimating Cliona prevalence. Thus, power analysis helps determine how many observations are needed per species to ensure reliable estimates of Cliona prevalence. 
+
+6. (Cohen’s h) is a statistical measure of the difference between two proportions. It is calculated using the arcsine transformation, which stabilizes variance when dealing with proportions. The formula used is: 
+
+$$
+h = 2 \times \left( \asin \left( \sqrt{p_1} \right) - \asin \left( \sqrt{p_2} \right) \right)
+$$
+
+7. Next step is to define the smallest Cliona prevalence worth detecting. The variable p1 is set to 0.004, which represents the smallest Cliona prevalence that is considered biologically meaningful for detection.
+```{r,warning = FALSE, message = FALSE}
+# Define expected prevalence rates
+p1 <- 0.004  # Smallest Cliona prevalence worth detecting
+```
+
+8. Then, we need to calculate the average prevalence of Cliona across all species. The variable p2 is computed as the mean Cliona prevalence across all coral species where Cliona has been observed at least once. The na.rm = TRUE ensures that missing values do not interfere with the calculation.
+
+```{r,warning = FALSE, message = FALSE}
+#the lowest prevalence of cliona that has more than 1 observation for that coral species
+p2 <- mean(species_cliona_prob$cliona_probability[species_cliona_prob$cliona_probability > 0], na.rm = TRUE)
+```
+
+9. Next we define the arcsign coefficient equation an run the power analysis. The function pwr.p.test() is used to determine how many observations per species are needed to detect Cliona with 80% power (power = 0.8) at a 5% significance level (sig.level = 0.05). The absolute value of h_effect_size is used as the effect size in the calculation.
+
+```{r,warning = FALSE, message = FALSE}
+# Calculate Cohen's h effect size
+h_effect_size <- 2 * asin(sqrt(p1)) - 2 * asin(sqrt(p2))
+
+# Run power analysis to find the required sample size per species
+power_result <- pwr.p.test(h = abs(h_effect_size), sig.level = 0.05, power = 0.8)
+```
+
+The result of the power analysis suggests that at least 157 observations per species are needed to make a statistically confident estimate of Cliona prevalence.
+
+```{r}
+print(power_result$n)
+```
+
+10. Once we got a result, we need to set a threshold to filter species with insufficient observations. The threshold for filtering species is determined using ceiling(power_result$n), which rounds up the required sample size to the nearest whole number.
+
+```{r,warning = FALSE, message = FALSE}
+# Define threshold based on power analysis
+min_observations_threshold <- ceiling(power_result$n)
+```
+
+11. Once a minimum threshold is established we can then remove species that do not meet the required sample size. This makes it so that species with very few observations do not introduce noise into the analysis.
+
+```{r,warning = FALSE, message = FALSE}
+# Filter out species with too few observations
+filtered_species <- species_cliona_prob %>%
+  filter(total_observations >= ceiling(power_result$n))
+```
+
+12. Next is to load in site depth data from an external file and filter the cliona dataset so that only the species that passed the previous filtering step (those with a sufficient number of observations) are kept. Then summarize Cliona prevalence by location and species. And finally merge the depth and cliona data set. 
+
+```{r,warning = FALSE, message = FALSE}
+# Load site depth data (Assuming depth data is in "SiteMetadata.csv")
+site_metadata <- read_csv("TCRMP_SiteMetadata.csv") %>%
+  select(Location, Depth)  
+
+# Filter Cliona data to keep only chosen species
+cliona_filtered <- cliona %>%
+  filter(SPP %in% filtered_species$SPP)
+
+# Summarize by **Location AND Coral Species (SPP)**
+location_species_summary <- cliona_filtered %>%
+  group_by(Location, SPP) %>%
+  summarise(
+    Total_Abundance = n(),  
+    Cliona_Presence = sum(presence, na.rm = TRUE), 
+    Total_Surveys = n(), 
+    Cliona_Prevalence = Cliona_Presence / Total_Surveys  
+  ) %>%
+  ungroup()
+
+# Merge Depth Data (Ensuring Each Location Retains Its Depth)
+location_species_summary <- location_species_summary %>%
+  left_join(site_metadata, by = "Location")  
+```
+
+
+13. the next step is to visualize this data. I used two different methods to visualize the if depth has an impact on Cliona prevalence. 
+
+```{r, fig.width=15, fig.height=8}
+ggplot(location_species_summary, aes(x = Depth, y = Cliona_Prevalence, color = SPP)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "dashed") +
+  labs(title = "Cliona Prevalence vs. Depth by Coral Species",
+       x = "Depth (m)",
+       y = "Cliona Prevalence",
+       color = "Coral Species") +
+  theme_minimal()
+```
+
+
+
+
+
 
 ## Cliona Prevalence by Reef Complex
 
