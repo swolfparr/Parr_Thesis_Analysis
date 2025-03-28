@@ -607,7 +607,7 @@ h_effect_size <- 2 * asin(sqrt(p1)) - 2 * asin(sqrt(p2))
 power_result <- pwr.p.test(h = abs(h_effect_size), sig.level = 0.05, power = 0.8)
 ```
 
-The result of the power analysis suggests that at least 157 observations per species are needed to make a statistically confident estimate of Cliona prevalence.
+The result of the power analysis suggests that at least 350 observations per species are needed to make a statistically confident estimate of Cliona prevalence.
 
 ```{r}
 print(power_result$n)
@@ -1358,7 +1358,10 @@ coral_abundance <- cliona %>%
   ungroup()
 
 clionaclean1 <- cliona %>%
+  filter(SPP %in% filtered_species$SPP) %>%  # ← filters to power-tested species
   left_join(coral_abundance, by = c("SPP", "Location", "Transect", "SampleYear"))
+
+
 ```
 
 3.  **Summarizing Total Presence and Abundance**:
