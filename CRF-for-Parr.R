@@ -71,10 +71,10 @@ glmm <- glmmTMB(
   family = binomial
 )
 
-summary(glmm_model_tyler_and_rosmin)
+summary(glmm)
 
 # 📊 Visualize Model: Predicted Cliona Presence by Depth & Bleaching
-preds <- ggpredict(glmm_model_tyler_and_rosmin, terms = c("Depth", "high_bleaching"))
+preds <- ggpredict(glmm, terms = c("Depth", "high_bleaching"))
 
 ggplot(preds, aes(x = x, y = predicted, color = group)) +
   geom_line(size = 1.2) +
