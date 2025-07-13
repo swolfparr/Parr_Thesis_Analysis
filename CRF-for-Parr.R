@@ -62,14 +62,23 @@ cliona <- cliona %>%
     SPP_collapsed = factor(SPP_collapsed)
   )
 
-
+glimpse(cliona)
 # 📈 Fit GLMM: Depth x High Bleaching (Binary)
 glmm <- glmmTMB(
   presence ~ Depth + high_bleaching + Depth:high_bleaching + 
-    (1 | Code),
+    (1 | Code) +(1|SampleYear),
   data = cliona,
   family = binomial
 )
+
+
+glmm1 <- glmmTMB(
+  presence ~ Depth + high_bleaching + Depth:high_bleaching + SPP+ SPP:high_bleaching+
+    (1 | Code)+(1|SampleYear) +(1|Recorder),
+  data = cliona,
+  family = binomial
+)
+
 
 summary(glmm)
 
@@ -108,3 +117,20 @@ cliona_tyler_rosmin %>%
     y = "Prevalence of Cliona Presence"
   ) +
   theme_minimal()
+
+
+cliona %>%
+  group_by(SampleYear) %>%
+  summarize(mean_presence = mean(presence, na.rm = TRUE)*100,
+            n = n()) %>%
+  filter(n >= 10) %>%
+  ggplot(aes(x = as.numeric(as.character(SampleYear)), y = mean_presence)) +
+  geom_line(size = 1) +        # this connects the dots
+  geom_point(size = 2) +       # this shows the individual points
+  labs(
+    title = "Cliona Prevalence Over Time",
+    x = "Year",
+    y = "Mean Presence (Prevalence)"
+  ) +
+  theme_minimal()
+
