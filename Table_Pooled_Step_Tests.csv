@@ -1,0 +1,5 @@
+Contrast,Prev A,Prev B,Δ (pp),p,p (FDR)
+Pre-2017 vs Hurricanes,6.64%,6.85%,+0.21,7.33e-01,7.62e-01
+Pre-2017 vs SCTLD,6.64%,6.46%,-0.17,7.62e-01,7.62e-01
+Pre-2017 vs Bleaching,6.64%,3.21%,-3.43,4.36e-09,1.75e-08
+SCTLD vs Bleaching,6.46%,3.21%,-3.26,2.65e-08,5.29e-08

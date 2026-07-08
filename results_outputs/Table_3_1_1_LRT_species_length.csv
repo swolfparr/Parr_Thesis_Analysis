@@ -1,0 +1,4 @@
+"comparison","delta_df","lr_chisq","p_value"
+"Null -> Species",25,833.232043110575,1.1717282887966e-159
+"Species -> Species+Length",1,379.250145321315,1.81224457738091e-84
+"Species+Length -> Species*Length",25,417.48925764102,8.0759759018632e-73

@@ -1,251 +1,457 @@
 ---
-title: "Thesis"
+title: "Clionaidae Thesis Analysis"
 author: "Spencer Parr"
-date: "2024-10-03"
-output: html_document
+date: "Updated 2026-07-08"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    theme: flatly
+    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  out.width = "100%",
+  results = "asis"
+)
+
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(stringr)
+  library(knitr)
+  library(scales)
+})
+
+safe_read <- function(path) {
+  if (file.exists(path)) {
+    readr::read_csv(path, show_col_types = FALSE)
+  } else {
+    tibble(.missing_file = path)
+  }
+}
+
+show_table <- function(dat, n = 10, digits = 3, caption = NULL) {
+  if (nrow(dat) == 0 || ".missing_file" %in% names(dat)) {
+    missing <- if (".missing_file" %in% names(dat)) unique(dat$.missing_file) else "requested table"
+    cat(paste0("<p class='missing'>Table not found: <code>", missing, "</code></p>"))
+  } else {
+    cat(knitr::kable(
+      head(dat, n),
+      format = "html",
+      digits = digits,
+      caption = caption,
+      table.attr = "class='table table-striped table-condensed'"
+    ))
+  }
+}
+
+include_if_exists <- function(path, alt = path) {
+  if (file.exists(path)) {
+    knitr::include_graphics(path)
+  } else {
+    cat(paste0("<p class='missing'>Figure not found: <code>", path, "</code></p>"))
+  }
+}
+
+fmt_p <- function(x) {
+  ifelse(is.na(x), NA_character_, ifelse(x < 0.001, "<0.001", sprintf("%.3f", x)))
+}
+
+period_dat <- safe_read("poster_disturbance_period_data.csv")
+period_tests <- safe_read("Table_Pooled_Step_Tests.csv")
+depth_summary <- safe_read("poster_depth_association_summary.csv")
+video_summary <- safe_read("poster_cliona_depth_species_summary.csv")
+ivlev_oar <- safe_read("poster_ivlev_oar_data.csv")
+glm_lrt <- safe_read("results_outputs/Table_3_1_1_LRT_species_length.csv")
+glm_length <- safe_read("results_outputs/Table_3_1_1_length_effect.csv")
+glm_or <- safe_read("results_outputs/Table_3_1_1_species_ORs.csv")
+morph_prev <- safe_read("results_outputs/Table_3_1_2_morphology_prevalence.csv")
+site_quasi <- safe_read("results_outputs/Table_3_2_1_site_quasi_aod.csv")
+pca_var <- safe_read("results_outputs/Table_3_2_2_PCA_variance.csv")
+pca_load <- safe_read("results_outputs/Table_3_2_2_PCA_loadings.csv")
+depth_or <- safe_read("results_outputs/Table_3_2_2_depth_OR_by_species.csv")
+depth_int <- safe_read("results_outputs/Table_3_2_2_species_depth_interaction_test.csv")
+lm_depth <- safe_read("results_outputs/Table_3_2_2_lm_meanprev_depth_abundance_tidy.csv")
+dharma <- safe_read("DHARMa_results_shallow.csv")
+
+master_map <- tibble::tribble(
+  ~Step, ~Source_file, ~Website_section, ~Purpose,
+  "A", "plot_cliona_depth_abundance.R", "Video surveys", "Photo-confirmed sponge observations by depth, sponge species, and coral status.",
+  "B", "detection_probability.R", "Data workflow", "Builds the TCRMP colony-level Clionaidae detection/prevalence workflow.",
+  "C", "Depth&TemporalStuff.R", "Depth and disturbance", "Depth-stratified prevalence, temporal trends, disturbance windows, and shallow-site robustness.",
+  "D", "depthsitePCA.R", "Depth and site structure", "Tests whether site identity, depth, and distance explain site-level prevalence patterns.",
+  "E", "Working_PCA.R", "PCA and diagnostics", "Refined PCA/regression workflow with diagnostic and sensitivity checks.",
+  "F", "StepChange_Bleaching.R", "Disturbance windows", "Tests step changes around hurricanes, SCTLD, and the 2023 bleaching period.",
+  "G", "Correct_SPP_Length_GLM_2026.R", "Host species GLM", "Uses binomial GLMs to test host species and colony size effects on Clionaidae prevalence.",
+  "H", "IVLEV_OAR_Fixed.R", "Host preference", "Calculates Ivlev electivity and observed:available ratios for host preference."
+)
+
+if (nrow(depth_summary) > 0 && !".missing_file" %in% names(depth_summary)) {
+  shallow_prev <- depth_summary$prevalence_label[depth_summary$depth_bin == "<=12 m"]
+  shallow_share <- percent(depth_summary$share_positive[depth_summary$depth_bin == "<=12 m"], accuracy = 0.1)
+} else {
+  shallow_prev <- "8.08%"
+  shallow_share <- "79.3%"
+}
+
+if (nrow(period_dat) > 0 && !".missing_file" %in% names(period_dat)) {
+  bleach_prev <- period_dat$pct_label[str_detect(period_dat$window, "Bleaching")]
+  earlier_mean <- mean(period_dat$prevalence[period_dat$highlight == "Earlier periods"], na.rm = TRUE)
+  earlier_label <- percent(earlier_mean, accuracy = 0.1)
+} else {
+  bleach_prev <- "3.21%"
+  earlier_label <- "6.6%"
+}
+
+if (nrow(glm_length) > 0 && !".missing_file" %in% names(glm_length)) {
+  length_5cm <- sprintf("%.1f%%", glm_length$pct_per_5cm[1])
+} else {
+  length_5cm <- "8.1%"
+}
 ```
 
-```{r, include=FALSE}
-library(readr)
-library(tidyverse)
-library(ggplot2)
-library(dplyr)
+<style>
+body { font-family: "Times New Roman", Times, serif; color: #111827; }
+h1, h2, h3, h4, .nav, .tocify { font-family: "Times New Roman", Times, serif; }
+.main-container { max-width: 1280px; }
+.hero {
+  border-left: 8px solid #2a9d8f;
+  background: #f7faf9;
+  padding: 1.25rem 1.5rem;
+  margin: 1rem 0 1.5rem 0;
+}
+.hero h2 { margin-top: 0; font-size: 32px; font-weight: 700; }
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  margin: 1rem 0 1.25rem 0;
+}
+.card {
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: #ffffff;
+}
+.card .big { font-size: 30px; font-weight: 700; color: #1f2937; line-height: 1.05; }
+.card .label { color: #475569; font-size: 16px; margin-top: 6px; }
+.note, .interpretation {
+  border-left: 5px solid #d64545;
+  background: #fff7f7;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+}
+.method {
+  border-left: 5px solid #4e79a7;
+  background: #f4f8fc;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+}
+.missing { color: #8a341f; font-weight: 600; }
+table { width: 100%; font-size: 15px; }
+th { background: #eef2f7; }
+caption { color: #111827; font-weight: 700; }
+img { border: 1px solid #e5e7eb; }
+</style>
 
+# Spencer Parr Thesis Analysis {.tabset .tabset-fade}
 
-cliona <- read_csv("Cliona.csv") #load data
+## Overview
+
+<div class="hero">
+<h2>Clionaidae prevalence is structured by host identity, reef depth, and recent disturbance.</h2>
+<p>This website is a rebuilt thesis analysis report for the TCRMP coral-health and benthic datasets. It follows the analysis map in <code>Combined_Analysis_Master.R</code> and presents the current outputs as figures, tables, and short interpretations.</p>
+</div>
+
+<div class="grid-cards">
+  <div class="card"><div class="big">2012-2024</div><div class="label">Primary analysis window for updated TCRMP colony records</div></div>
+  <div class="card"><div class="big">`r shallow_prev`</div><div class="label">Clionaidae prevalence at very shallow sites (<=12 m)</div></div>
+  <div class="card"><div class="big">`r shallow_share`</div><div class="label">Share of Clionaidae-positive focal colonies found at <=12 m sites</div></div>
+  <div class="card"><div class="big">`r bleach_prev`</div><div class="label">Prevalence during the 2023-2024 bleaching window</div></div>
+</div>
+
+**Main story.** Clionaidae prevalence is not evenly distributed across reef space or host corals. The updated analyses show strong host-species differences, a clear decline with depth, and a sharp reduction in prevalence after the 2023 bleaching period.
+
+**How to read this report.** Each tab has three pieces: what the analysis asks, what model or metric was used, and what the result means biologically. Code is hidden by default, but the source files are listed in the analysis map tab.
+
+## Site Map
+
+<div class="method">
+<strong>What this map shows.</strong> This map gives the spatial context for the TCRMP reef sites used throughout the thesis analyses. It is useful for interpreting the depth, reef-complex, and site-identity results because those patterns are geographically structured across the U.S. Virgin Islands.
+</div>
+
+```{r site-map-figure, fig.cap="TCRMP reef-site map used for thesis spatial context."}
+include_if_exists("SiteMap.png")
 ```
 
-# *Spencer Parr Thesis Analysis* {.tabset}
+[Open the full-size site map PDF](SiteMap.pdf)
 
-## Info
+## Data Workflow
 
-**Study Overview**:\
-This research investigates the impact of Cliona sponges, particularly *Cliona delitrix*, on coral reef ecosystems in the U.S. Virgin Islands (USVI). Using data from the Territorial Coral Reef Monitoring Program (TCRMP), the study spans 34 reef sites over 11 years (2012-2023), focusing on how environmental disturbances (bleaching, hurricanes, diseases) influence Cliona-coral interactions.
+<div class="method">
+<strong>What this workflow does.</strong> The data workflow starts from the TCRMP coral-health colony, condition, interaction, and site files. Clionaidae-positive colonies are identified from interaction codes including <code>CLIO</code>, <code>CLSP</code>, and <code>BOSP</code>. The core analyses focus on annual/post-bleaching permanent transect records collected with intercept or belt methods, then summarize prevalence as positive colonies divided by total colonies.
+</div>
 
-**Code Explanation**:\
-The R scripts provided manage and manipulate TCRMP data, preparing it for statistical analysis. Key steps include filtering Cliona species data, calculating prevalence, and integrating environmental factors. Models such as Linear Mixed-Effects Models (LMEMs) and Generalized Linear Models (GLMs) are applied to assess Cliona recruitment patterns, coral interactions, and environmental influences.
+**Why this matters.** The response variable in most models is binary at the colony level: a coral colony is either Clionaidae-positive or not. That structure is why the major statistical tests use binomial GLMs or grouped binomial counts.
 
-## Metadata
+```{r master-map-short}
+show_table(master_map[, c("Step", "Source_file", "Purpose")], n = 8, caption = "Analysis files used to rebuild this website")
+```
 
-## **Data Manipulation**
+## Host Preference
 
-### *This code explains the data management and manipulation that was done before analysis*
+<div class="method">
+<strong>What Ivlev and OAR are used for.</strong> Ivlev electivity compares the proportional use of a coral host to its proportional availability. Values above 0 mean Clionaidae occurred on that host more often than expected from availability; values below 0 suggest avoidance. The observed:available ratio (OAR) shows the same idea as a ratio, where 1 is neutral, greater than 1 is over-represented, and less than 1 is under-represented.
+</div>
 
-1.  This code creates new columns in the cliona data frame based on whether the values in Spo1ID and Spo2ID match specific species identifiers ("CLSP" or "BOSP"). If the condition is true, it assigns the corresponding values from Spo1 and Spo2 to the new columns; otherwise, it assigns NA. This creates a more structured way to organize species-specific data from different ID columns.
+```{r host-preference-figure, fig.cap="Poster-ready combined Ivlev electivity and observed:available ratio figure."}
+include_if_exists("Poster_Ivlev_OAR_Combined.png")
+```
 
-```{r}
-cliona <- cliona %>%
-  mutate(
-    CLSP = case_when(Spo1ID == "CLSP" ~ Spo1, TRUE ~ NA),  # Assign SPO1 value for CLSP
-    BOSP = case_when(Spo1ID == "BOSP" ~ Spo1, TRUE ~ NA)   # Assign SPO1 value for BOSP
+<div class="interpretation">
+<strong>Interpretation.</strong> Preference is strongest for several massive or stress-tolerant hosts, especially <em>Orbicella annularis</em> and <em>Siderastrea siderea</em>. Some high Ivlev/OAR values have very wide confidence intervals because those corals were rare or had few positive colonies, so the graph correctly treats those as uncertain rather than as strong biological evidence.
+</div>
+
+```{r ivlev-table}
+ivlev_top <- ivlev_oar %>%
+  filter(!(".missing_file" %in% names(.))) %>%
+  arrange(desc(Ei)) %>%
+  transmute(
+    species = species_group,
+    colonies = n_total,
+    positives = k_total,
+    Ei = round(Ei, 2),
+    OAR = round(OAR, 2),
+    OAR_95_CI = paste0(round(OAR_lo, 2), "-", round(OAR_hi, 2)),
+    uncertainty = uncertainty_group
   )
+show_table(ivlev_top, n = 12, caption = "Highest host preference estimates with uncertainty flags")
+```
 
-cliona <- cliona %>%
-  mutate(
-    CLSP2 = case_when(Spo2ID == "CLSP" ~ Spo2, TRUE ~ NA),  # Assign SPO2 value for CLSP
-    BOSP2 = case_when(Spo2ID == "BOSP" ~ Spo2, TRUE ~ NA)   # Assign SPO2 value for BOSP
+## Host Species GLM
+
+<div class="method">
+<strong>What the GLM is used for.</strong> The host-species GLM tests whether the probability that a colony is Clionaidae-positive changes with host species and colony length. Because the response is yes/no at the colony level, a binomial GLM is appropriate. The likelihood-ratio tests ask whether adding species, length, and species-by-length terms improves the model.
+</div>
+
+```{r glm-main-figure, fig.cap="Species-level prevalence summary from the updated GLM workflow."}
+include_if_exists("Species_prevalence_barplot.png")
+```
+
+<div class="interpretation">
+<strong>Interpretation.</strong> Host species identity strongly improves model fit, colony length also improves model fit, and the interaction term indicates that size effects are not identical across all host species. Holding species constant, the length effect corresponds to about `r length_5cm` higher odds of Clionaidae occurrence per 5 cm increase in colony length.
+</div>
+
+```{r glm-lrt-table}
+show_table(glm_lrt, n = 3, caption = "Likelihood-ratio tests for host species and colony length GLMs")
+```
+
+```{r glm-length-table}
+length_tbl <- glm_length %>%
+  filter(!(".missing_file" %in% names(.))) %>%
+  transmute(
+    term,
+    log_odds_estimate = estimate,
+    p_value = p.value,
+    odds_increase_per_cm_pct = pct_per_cm,
+    odds_increase_per_5cm_pct = pct_per_5cm
   )
+show_table(length_tbl, n = 1, caption = "Colony length effect from the additive species + length GLM")
 ```
 
-2.  Create a new data frame with only the columns that are needed
-
-```{r}
-clionaclean <- cliona[c('Location', 'SampleYear', 'Period', 'SampleType', 'Method', 'Transect', 'SPP', 'CLSP', 'BOSP', 'Cliona', 'CLSP2', 'BOSP2')]
+```{r glm-or-table}
+glm_or_top <- glm_or %>%
+  filter(!(".missing_file" %in% names(.))) %>%
+  arrange(desc(OR)) %>%
+  mutate(
+    OR = round(OR, 2),
+    CI = paste0(round(OR_lo, 2), "-", round(OR_hi, 2)),
+    p_FDR = fmt_p(p_fdr)
+  ) %>%
+  select(species, OR, CI, p_FDR)
+show_table(glm_or_top, n = 12, caption = "Top adjusted host-species odds ratios from the GLM")
 ```
 
-3.  Finding Presence of Cliona -3A. Change Transect and Year to a Factor
+## Depth Signal
 
-```{r}
-clionaclean$Transect <- as.factor(clionaclean$Transect)
-clionaclean$SampleYear <- as.factor(clionaclean$SampleYear)
+<div class="method">
+<strong>What the depth analysis is used for.</strong> The depth analysis asks whether Clionaidae prevalence changes across site depth bins and whether very shallow reefs explain most of the positive colonies. This direct depth-bin summary is easier to interpret than a PCA for audiences who need the biological result quickly.
+</div>
+
+```{r depth-association-figure, fig.cap="Poster-ready depth association figure for focal coral hosts."}
+include_if_exists("Poster_Depth_Association_Figure.png")
 ```
 
-3B. Convert (CLSP, CLSP2, BOSP, BOSP2, & Cliona) columns to Binary (0 or 1)
+<div class="interpretation">
+<strong>Interpretation.</strong> Prevalence is highest at <=12 m and drops strongly at deeper bins. Very shallow reefs represent about half of the focal-colony sampling effort, but they contain most Clionaidae-positive focal colonies. That makes depth the clearest spatial signal in the current analysis.
+</div>
 
-```{r}
-clionaclean$CLSP[is.na(clionaclean$CLSP)] <- 0
-clionaclean$BOSP[is.na(clionaclean$BOSP)] <- 0
-clionaclean$CLSP2[is.na(clionaclean$CLSP2)] <- 0
-clionaclean$BOSP2[is.na(clionaclean$BOSP2)] <- 0
-clionaclean$Cliona[is.na(clionaclean$Cliona)] <- 0
+```{r depth-summary-table}
+depth_tbl <- depth_summary %>%
+  filter(!(".missing_file" %in% names(.))) %>%
+  transmute(
+    depth_bin,
+    colonies,
+    positives = clionaid_positive,
+    prevalence = prevalence_label,
+    share_all_colonies = percent(share_colonies, accuracy = 0.1),
+    share_positive_colonies = percent(share_positive, accuracy = 0.1)
+  )
+show_table(depth_tbl, n = 3, caption = "Depth-bin prevalence and contribution to Clionaidae-positive colonies")
 ```
 
-3C. Merge sponge columns together and make a new column for presence
+## PCA and Model Context
 
-```{r}
-clionaclean$presence <- clionaclean$Cliona + clionaclean$CLSP + clionaclean$CLSP2 + clionaclean$BOSP + clionaclean$BOSP2
+<div class="method">
+<strong>What the depth GLM and PCA are used for.</strong> The grouped binomial GLMs test the depth association statistically using counts of positive and non-positive colonies. The PCA is exploratory: it shows how site depth, distance from shore, and mean prevalence align, but it is not the cleanest primary explanation for the poster or website.
+</div>
 
-clionabinary <- clionaclean %>%
-  mutate_if(is.numeric, ~1 * (. > 0))
-
-clionaclean1 <- clionabinary[c('Location', 'SampleYear', 'Period', 'SampleType', 'Method', 'Transect', 'SPP', 'presence')]
-
-clionaclean1 <- data.frame(subset(clionaclean, clionaclean$Period == 'Annual' & clionaclean$SampleType == 'Permanent' & clionaclean$Method %in% c('intercept','50 cm belt')))
-
+```{r pca-figure, fig.cap="Exploratory PCA of site depth, distance from shore, and Clionaidae prevalence."}
+include_if_exists("Poster_Clionaid_PCA.png")
 ```
 
-4.  Remove transects with random letter in it and filter Year so that its from 2010-2023
+<div class="interpretation">
+<strong>Interpretation.</strong> The PCA is useful as a compact exploratory view of spatial gradients. PC1 captures most of the variation and mainly separates deeper/offshore structure from higher-prevalence shallow sites, but the direct depth-bin figure remains the clearest visual for communicating the depth result.
+</div>
 
-```{r}
-# Remove transects with "A" in the label
-clionaclean1 <- clionaclean1 %>%
-  filter(!grepl("A", Transect))
-
-# Convert SampleYear from factor to numeric 
-clionaclean1$SampleYear <- as.numeric(as.character(clionaclean1$SampleYear))
-                                      
-# Now filter rows with SampleYear >= 2010
-clionaclean1 <- clionaclean1 %>%
-  filter(SampleYear >= 2010)
-
+```{r depth-model-tables}
+show_table(lm_depth, n = 5, caption = "Linear model of site mean prevalence against depth and coral abundance")
+show_table(depth_int, n = 2, caption = "Species-by-depth interaction test from the grouped binomial GLM")
 ```
 
-## **Cliona Prevalence**
-
-1.  Determine & Standardize: Prevalence & Frequency The first code summarizes species presence for each combination of Location, SampleYear, and Transect by calculating the mean presence (prev), total presence (freq), and the total number of observations (total). The second Code summarizes species prevalence for each year and location by calculating the average prevalence (mean_prev) for each location in each sample year.
-
-```{r}
-transectprev <- clionaclean1 %>%
-  group_by(Location, SampleYear, Transect) %>%
-  summarise(prev = mean(presence), freq = sum(presence), total = n())
-
-
-
-siteprev<- transectprev %>%
-  group_by(Location, SampleYear)%>%
-  summarise(mean_prev=mean(prev))
+```{r pca-tables}
+show_table(pca_var, n = 3, caption = "PCA variance explained")
+show_table(pca_load, n = 3, caption = "PCA loadings for depth, distance, and mean prevalence")
 ```
 
-2.  Graphing Prevalence
+## Disturbance Windows
 
-  -2A. Basic bar graph representing
+<div class="method">
+<strong>What the disturbance analysis is used for.</strong> This analysis pools shallow focal-host colonies by disturbance period: pre-2017, hurricanes 2017-2018, SCTLD 2019-2022, and bleaching 2023-2024. It tests whether prevalence changed across those windows and whether the 2023 bleaching period marks a step change.
+</div>
 
-```{r}
-
-ggplot(siteprev, aes(x = reorder(Location, -mean_prev), y = mean_prev), color = SampleYear) +
-  geom_bar(stat = "identity", fill = "black") +
-  labs(title = "Prevalence of Cliona Sponges by Location",
-       x = "Location",
-       y = "Prevalence") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5))
-
+```{r disturbance-figure, fig.cap="Poster-ready disturbance-period figure showing the post-2023 bleaching decline."}
+include_if_exists("Poster_Disturbance_Signal.png")
 ```
 
-2B. Mean Prevalence of Cliona Sponges by Location and Year
+<div class="interpretation">
+<strong>Interpretation.</strong> Reef-wide shallow prevalence was stable near `r earlier_label` through the earlier windows, then fell to `r bleach_prev` during the 2023-2024 bleaching window. The pairwise tests show the bleaching window is significantly lower than earlier periods after FDR adjustment.
+</div>
 
-```{r}
-ggplot(transectprev, aes(x = reorder(Location, -prev), y = prev, fill = factor(SampleYear))) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Mean Prevalence of Cliona Sponges by Location and Year",
-       x = "Location",
-       y = "Prevalence",
-       fill = "Year") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5))
+```{r disturbance-tables}
+period_tbl <- period_dat %>%
+  filter(!(".missing_file" %in% names(.))) %>%
+  select(window, n_colonies, n_cliona, `Prevalence (%)`, `95% CI`)
+show_table(period_tbl, n = 4, caption = "Pooled prevalence by disturbance window")
+show_table(period_tests, n = 6, caption = "Step-change tests among disturbance windows")
 ```
 
-2C. Prevalence of Cliona Sponges by Location (with Distribution)
+## Video Surveys
 
-```{r}
-ggplot(transectprev, aes(x = reorder(Location, -prev), y = prev)) +
-  geom_boxplot(fill = "lightblue") +
-  labs(title = "Prevalence of Cliona Sponges by Location (with Distribution)",
-       x = "Location",
-       y = "Prevalence") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5))
+<div class="method">
+<strong>What the video-survey figure is used for.</strong> This is supporting evidence, not the main TCRMP colony analysis. It summarizes photo-confirmed 2019 Clionaidae observations by site depth, sponge species, and coral status. It is useful because it independently corroborates the shallow-water pattern.
+</div>
+
+```{r video-survey-figure, fig.cap="Photo-confirmed 2019 video-survey observations by depth, Clionaidae species, and coral status."}
+include_if_exists("Poster_Cliona_Depth_Abundance.png")
 ```
 
-2D. Prevalence over years by transect
+<div class="interpretation">
+<strong>Interpretation.</strong> Most observations are concentrated above 20 m, especially for <em>C. delitrix</em>. The video data should be described as corroborating evidence because it comes from the photo/video survey dataset rather than the full TCRMP colony-level denominator used for prevalence models.
+</div>
 
-```{r}
-ggplot(transectprev, aes(x = SampleYear, y = prev, color = factor(Transect), group = Transect)) +
-  geom_line() +  # Draws lines between points
-  geom_point() +  # Adds points for each data point
-  facet_wrap(~Location, scales = "free_y") +  # Creates separate plots for each Location
-  labs(title = "Prevalence Over Years by Transect",
-       x = "Year",
-       y = "Prevalence",
-       color = "Transect") +
-  scale_x_continuous(breaks = unique(transectprev$SampleYear), labels = unique(transectprev$SampleYear)) +  # Format x-axis labels
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5))
+```{r video-summary-table}
+show_table(video_summary, n = 6, caption = "Video-survey observation counts and mean depth by Clionaidae species")
 ```
 
-## Substrate Preference
+## Morphology and Site Structure
 
-### Ivlev's Electivity Index
+<div class="method">
+<strong>What these summaries are used for.</strong> Morphology summaries ask whether Clionaidae occurrence is concentrated on growth forms that may differ in skeletal structure or exposure. Site-structure models ask whether spatial site identity explains additional variation beyond broad depth and distance gradients.
+</div>
 
-The **Ivlev's Electivity Index** (Ei) is a quantitative measure used to determine an organism's preference for certain food or habitat types relative to their availability. In this thesis, it is applied to assess the *Cliona delitrix* sponge's substrate preferences on coral reefs. Specifically, the index compares the proportion of coral species colonized by Cliona to the proportion of those species available in the environment. A positive Ei value indicates a preference, while negative values suggest avoidance. This helps in understanding how Cliona sponges select coral species under different environmental conditions.
-
-Electivity indices measure the utilization of food types (r) in relation to their abundance or availability in the environment (p). Foods that constitute a larger proportion of the diet than of the available foods are considered preferred; conversely those proportionately underrepresented in the diet are avoided.
-
-[![Figure 1: Prey selectivity according to Ivlev's selectivity index of newly emerged brown trout fry in the River Iso (NW Spain). Modified from Elías, Jacinto & Díaz et al. (2013)](Prey-selectivity-according-to-Ivlevs-selectivity-index-of-newly-emerged-brown-trout-fry.png)](https://www.researchgate.net/publication/235437330_InTech-Ontogenetic_dietary_shifts)
-
-While **Ivlev's Electivity Index** is typically used for dietary preferences, it can still be effectively applied to *Cliona delitrix* sponges in this thesis, despite corals not being a food source. Cliona sponges exhibit substrate preferences for certain coral species based on factors such as calcium carbonate concentration. Some stony corals have denser calcium carbonate skeletons, which may be harder for Cliona to excavate and colonize. Thus, the sponge's choice is driven by its ability to grow and obtain necessary nutrients, similar to dietary selectivity in food webs.
-
-1.  **Coral Abundance by Species and Location**:
-
--   The code first calculates how many times each coral species appears at each location (site). This gives a general sense of coral distribution across different locations, providing a simple count of occurrences per species at each site.
-
-  2.  **Coral Abundance by Species, Location, Transect, and Year**:
-
-<!-- -->
-
--   The second part refines the calculation to be more detailed by including both **transects** (smaller sampling areas within locations) and **sample years**. This breakdown gives the number of occurrences for each species not only by location but also by transect and year, making it possible to track coral abundance more precisely across both space and time.
-
-```{r}
-# Calculate coral abundance (number of occurrences per species per site)
-coral_abundance <- clionaclean1 %>%
-  group_by(SPP, Location) %>%
-  summarise(Abundance = n()) %>%
-  ungroup()
-
-
-# Calculate coral abundance by transect and year
-coral_abundance <- clionaclean1 %>%
-  group_by(SPP, Location, Transect, SampleYear) %>%
-  summarise(Abundance = n()) %>%
-  ungroup()
-
-clionaclean1 <- clionaclean1 %>%
-  left_join(coral_abundance, by = c("SPP", "Location", "Transect", "SampleYear"))
+```{r morphology-table}
+morph_tbl <- morph_prev %>%
+  filter(!(".missing_file" %in% names(.))) %>%
+  mutate(
+    prevalence_pct = percent(prevalence, accuracy = 0.1),
+    CI = paste0(percent(lo, accuracy = 0.1), "-", percent(hi, accuracy = 0.1))
+  ) %>%
+  select(morph, N, K, prevalence_pct, CI)
+show_table(morph_tbl, n = 8, caption = "Clionaidae prevalence by coral morphology")
 ```
 
-3.  **Summarizing Total Presence and Abundance**:
-
--   The code calculates two key metrics for each coral species (`SPP`). The code creates a summary of each coral species, providing an overall count of how often each species was present and its total abundance across the entire dataset. This allows for a better understanding of the relative presence and prevalence of different coral species in the study area.
-
-```{r}
-# Summarize data to calculate total presence and abundance of each coral species
-summary_cliona <- clionaclean1 %>%
-  group_by(SPP) %>%
-  summarise(TotalPresence = sum(presence), 
-            TotalAbundance = sum(Abundance)) %>%  # Adjust for coral abundance
-  ungroup()
+```{r site-structure-table}
+show_table(site_quasi, n = 5, caption = "Grouped binomial site model: species and location effects")
 ```
 
-4.  
+<div class="interpretation">
+<strong>Interpretation.</strong> Morphology is useful descriptively, but host species and site identity remain important sources of variation. The site model shows that local reef identity explains additional prevalence structure, which means depth is a major signal but not the only ecological driver.
+</div>
 
--   This code calculates the **proportions of presence and availability** for each coral species and then computes **Ivlev's Electivity Index** to determine whether species are disproportionately present relative to their availability in the environment.
+## Diagnostics and Sensitivity
 
-```{r}
-# Calculate proportions and then Ivlev's Electivity Index adjusted for coral abundance
- Ivlev_Index <- summary_cliona %>%
-   mutate(ProportionPresence = TotalPresence / sum(TotalPresence),
-         ProportionAvailability = TotalAbundance / sum(TotalAbundance),  # Use abundance
-          IvlevIndex = (ProportionPresence - ProportionAvailability) /
-            (ProportionPresence + ProportionAvailability))
+<div class="method">
+<strong>What diagnostics are used for.</strong> Diagnostics check whether the binomial model assumptions are reasonable and whether the main conclusions survive alternative filters, such as different shallow-depth cutoffs or sparse-cell removal.
+</div>
 
-# View the results
- print(Ivlev_Index)
+```{r dharma-figure, fig.cap="DHARMa diagnostic output for the shallow prevalence model."}
+include_if_exists("DHARMa_results_shallow.png")
 ```
+
+```{r dharma-table}
+show_table(dharma, n = 10, caption = "DHARMa diagnostic tests for the shallow model")
+```
+
+```{r sensitivity-figure, fig.cap="Sensitivity of annual odds ratio to shallow-depth cutoff."}
+include_if_exists("Fig_S2_OR_by_depth.png")
+```
+
+<div class="interpretation">
+<strong>Interpretation.</strong> These checks are included so the thesis results are not just visually persuasive but statistically defensible. When a model shows overdispersion or sparse-cell uncertainty, the report treats that result cautiously and leans on robustness checks and direct summaries.
+</div>
+
+## References
+
+1. Chaves-Fonnegra, A., Riegl, B., Zea, S., Lopez, J. V., Smith, T., Brandt, M., & Gilliam, D. S. (2018). Bleaching events regulate shifts from corals to excavating sponges in algae-dominated reefs. *Global Change Biology, 24*(2), 773-785. https://doi.org/10.1111/gcb.13962
+
+2. Hughes, T. P., Baird, A. H., Bellwood, D. R., Card, M., Connolly, S. R., Folke, C., Grosberg, R., Hoegh-Guldberg, O., Jackson, J. B. C., Kleypas, J., Lough, J. M., Marshall, P., Nystrom, M., Palumbi, S. R., Pandolfi, J. M., Rosen, B., & Roughgarden, J. (2003). Climate change, human impacts, and the resilience of coral reefs. *Science, New Series, 301*(5635), 929-933.
+
+3. Hughes, T. P., Graham, N. A. J., Jackson, J. B. C., Mumby, P. J., & Steneck, R. S. (2010). Rising to the challenge of sustaining coral reef resilience. *Trends in Ecology & Evolution, 25*(11), 633-642. https://doi.org/10.1016/j.tree.2010.07.011
+
+4. Lopez-Victoria, M., Zea, S., & Weil, E. (2006). Competition for space between encrusting excavating Caribbean sponges and other coral reef organisms. *Marine Ecology Progress Series, 312*, 113-121. https://doi.org/10.3354/meps312113
+
+5. Perry, C. T., Murphy, G. N., Kench, P. S., Smithers, S. G., Edinger, E. N., Steneck, R. S., & Mumby, P. J. (2013). Caribbean-wide decline in carbonate production threatens coral reef growth. *Nature Communications, 4*(1), 1402. https://doi.org/10.1038/ncomms2409
+
+6. Schonberg, C. H. L. (2008). A history of sponge erosion: From past myths and hypotheses to recent approaches. In M. Wisshak & L. Tapanila (Eds.), *Current Developments in Bioerosion* (pp. 165-202). Springer Berlin Heidelberg. https://doi.org/10.1007/978-3-540-77598-0_9
+
+7. Wisshak, M., Schonberg, C. H. L., Form, A., & Freiwald, A. (2012). Ocean acidification accelerates reef bioerosion. *PLoS ONE, 7*(9), e45124. https://doi.org/10.1371/journal.pone.0045124
+
+## Analysis Map
+
+This tab connects the website back to the master runner. The site is organized around the same eight analysis blocks in <code>Combined_Analysis_Master.R</code>.
+
+```{r full-master-map}
+show_table(master_map, n = 8, caption = "Combined analysis master map")
+```
+
+To rerun the full analysis pipeline from R, use:
+
+```{r rerun-master, eval=FALSE, echo=TRUE}
+source("Combined_Analysis_Master.R")
+```
+
+For website updates, the safest workflow is:
+
+1. Run or update the relevant analysis script.
+2. Confirm the figure/table output changed.
+3. Render <code>index.Rmd</code>.
+4. Review <code>index.html</code> in a browser.
