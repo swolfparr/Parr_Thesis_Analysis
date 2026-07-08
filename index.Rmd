@@ -247,21 +247,21 @@ img { border: 1px solid #e5e7eb; max-width: 100%; height: auto; }
 ## Contact
 
 <div class="business-card">
-  <div>
-    <h2>Spencer Wolf Parr</h2>
-    <div class="role">Coral Conservation Technician</div>
-    <div class="org">CWORI - Coral World Ocean and Reef Initiative</div>
-    <div class="credential">Master's in Marine and Environmental Science</div>
-    <div class="credential">University of the Virgin Islands (UVI)</div>
-    <div class="contact-list">
-      <div><strong>Phone:</strong> 340-642-1974</div>
-      <div><strong>Email:</strong> <a href="mailto:spencer@cwori.org">spencer@cwori.org</a></div>
-    </div>
-    <div class="profile-note">Thesis website for Clionaidae prevalence, host preference, reef depth, and disturbance analyses in the U.S. Virgin Islands.</div>
-  </div>
-  <div>
-    <img class="cwori-logo" src="CWORI-logo.webp" alt="CWORI logo">
-  </div>
+<div>
+<h2>Spencer Wolf Parr</h2>
+<div class="role">Coral Conservation Technician</div>
+<div class="org">CWORI - Coral World Ocean and Reef Initiative</div>
+<div class="credential">Master's in Marine and Environmental Science</div>
+<div class="credential">University of the Virgin Islands (UVI)</div>
+<div class="contact-list">
+<div><strong>Phone:</strong> 340-642-1974</div>
+<div><strong>Email:</strong> <a href="mailto:spencer@cwori.org">spencer@cwori.org</a></div>
+</div>
+<div class="profile-note">Thesis website for Clionaidae prevalence, host preference, reef depth, and disturbance analyses in the U.S. Virgin Islands.</div>
+</div>
+<div>
+<img class="cwori-logo" src="CWORI-logo.webp" alt="CWORI logo">
+</div>
 </div>
 
 ## References
