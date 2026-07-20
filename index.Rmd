@@ -393,6 +393,26 @@ a:hover { color: #0b5c85; }
   margin: 1rem 0;
   border-radius: 0 10px 10px 0;
 }
+
+.reference-note {
+  color: var(--muted);
+  font-size: 19px;
+  margin: 0 0 18px 0;
+}
+.references-list {
+  column-count: 1;
+  padding-left: 1.35rem;
+  margin-top: 0.75rem;
+}
+.references-list li {
+  margin-bottom: 0.85rem;
+  padding-left: 0.2rem;
+  line-height: 1.38;
+  font-size: 16px;
+}
+.references-list a {
+  overflow-wrap: anywhere;
+}
 .missing { color: #8a341f; font-weight: 600; }
 table { width: 100%; font-size: 15px; }
 th { background: #eef2f7; }
@@ -452,19 +472,124 @@ img { border: 1px solid #e5e7eb; max-width: 100%; height: auto; border-radius: 1
 
 ## References
 
-1. Chaves-Fonnegra, A., Riegl, B., Zea, S., Lopez, J. V., Smith, T., Brandt, M., & Gilliam, D. S. (2018). Bleaching events regulate shifts from corals to excavating sponges in algae-dominated reefs. *Global Change Biology, 24*(2), 773-785. https://doi.org/10.1111/gcb.13962
+<p class="reference-note">Complete bibliography used for the thesis website and supporting analyses.</p>
 
-2. Hughes, T. P., Baird, A. H., Bellwood, D. R., Card, M., Connolly, S. R., Folke, C., Grosberg, R., Hoegh-Guldberg, O., Jackson, J. B. C., Kleypas, J., Lough, J. M., Marshall, P., Nystrom, M., Palumbi, S. R., Pandolfi, J. M., Rosen, B., & Roughgarden, J. (2003). Climate change, human impacts, and the resilience of coral reefs. *Science, New Series, 301*(5635), 929-933.
-
-3. Hughes, T. P., Graham, N. A. J., Jackson, J. B. C., Mumby, P. J., & Steneck, R. S. (2010). Rising to the challenge of sustaining coral reef resilience. *Trends in Ecology & Evolution, 25*(11), 633-642. https://doi.org/10.1016/j.tree.2010.07.011
-
-4. Lopez-Victoria, M., Zea, S., & Weil, E. (2006). Competition for space between encrusting excavating Caribbean sponges and other coral reef organisms. *Marine Ecology Progress Series, 312*, 113-121. https://doi.org/10.3354/meps312113
-
-5. Perry, C. T., Murphy, G. N., Kench, P. S., Smithers, S. G., Edinger, E. N., Steneck, R. S., & Mumby, P. J. (2013). Caribbean-wide decline in carbonate production threatens coral reef growth. *Nature Communications, 4*(1), 1402. https://doi.org/10.1038/ncomms2409
-
-6. Schonberg, C. H. L. (2008). A history of sponge erosion: From past myths and hypotheses to recent approaches. In M. Wisshak & L. Tapanila (Eds.), *Current Developments in Bioerosion* (pp. 165-202). Springer Berlin Heidelberg. https://doi.org/10.1007/978-3-540-77598-0_9
-
-7. Wisshak, M., Schonberg, C. H. L., Form, A., & Freiwald, A. (2012). Ocean acidification accelerates reef bioerosion. *PLoS ONE, 7*(9), e45124. https://doi.org/10.1371/journal.pone.0045124
+<ol class="references-list">
+<li>Achlatis, M., van der Zande, R. M., Schönberg, C. H. L., Fang, J. K. H., Hoegh-Guldberg, O., &amp; Dove, S. (2017). Sponge bioerosion on changing reefs: Ocean warming poses physiological constraints to the success of a photosymbiotic excavating sponge. Scientific Reports, 7(1), 10705. <a href="https://doi.org/10.1038/s41598-017-10947-1">https://doi.org/10.1038/s41598-017-10947-1</a></li>
+<li>Acosta-Chaparro, A. F., Agudo-Adriani, E., Aguilera Pérez, G., Alvarado Barrientos, J. J., Alvarez-Filip, L., Arias-González, J. E., et al. (2025). Status and trends of Caribbean coral reefs: 1970–2024. Global Coral Reef Monitoring Network &amp; International Coral Reef Initiative. <a href="https://doi.org/10.59387/BDHF9180">https://doi.org/10.59387/BDHF9180</a></li>
+<li>Anthony, K. R. N., Kline, D. I., Diaz-Pulido, G., Dove, S., &amp; Hoegh-Guldberg, O. (2008). Ocean acidification causes bleaching and productivity loss in coral reef builders. Proceedings of the National Academy of Sciences, 105(45), 17442–17446. <a href="https://doi.org/10.1073/pnas.0804478105">https://doi.org/10.1073/pnas.0804478105</a></li>
+<li>Auguie, B. (2017). gridExtra: Miscellaneous functions for “grid” graphics (R package version 2.3). CRAN.</li>
+<li>de Bakker, D. M., Webb, A. E., van den Bogaart, L. A., van Heuven, S. M. A. C., Meesters, E. H., &amp; van Duyl, F. C. (2018). Quantification of chemical and mechanical bioerosion rates of six Caribbean excavating sponge species found on the coral reefs of Curaçao. PLoS ONE, 13(5), e0197824. <a href="https://doi.org/10.1371/journal.pone.0197824">https://doi.org/10.1371/journal.pone.0197824</a></li>
+<li>Barthel, D., &amp; Tendal, O. S. (1994). Antarctic Hexactinellida. In J. W. Wägele &amp; J. Sieg (Eds.), Synopses of the Antarctic benthos (Vol. 6, pp. 9–135). Koeltz Scientific Books.</li>
+<li>Bell, J. J., Davy, S. K., Jones, T., Taylor, M. W., &amp; Webster, N. S. (2013). Could some coral reefs become sponge reefs as our climate changes? Global Change Biology, 19(9), 2613–2624. <a href="https://doi.org/10.1111/gcb.12212">https://doi.org/10.1111/gcb.12212</a></li>
+<li>Benjamini, Y., &amp; Hochberg, Y. (1995). Controlling the false discovery rate: A practical and powerful approach to multiple testing. Journal of the Royal Statistical Society: Series B (Methodological), 57(1), 289–300.</li>
+<li>Brandt, M. E., Olinger, L. K., Chaves-Fonnegra, A., Olson, J. B., &amp; Gochfeld, D. J. (2019). Coral recruitment is impacted by the presence of a sponge community. Marine Biology, 166(4), 49. <a href="https://doi.org/10.1007/s00227-019-3493-5">https://doi.org/10.1007/s00227-019-3493-5</a></li>
+<li>Bruckner, Andrew W. and Woodley, Cheryl M. (2009). Field guide to western Atlantic coral diseases.</li>
+<li>Calcinai, B., Arillo, A., Cerrano, C., &amp; Bavestrello, G. (2003). Taxonomy-related differences in the excavating micro-patterns of boring sponges. Journal of the Marine Biological Association of the United Kingdom, 83(1), 37–39. <a href="https://doi.org/10.1017/S0025315403006775h">https://doi.org/10.1017/S0025315403006775h</a></li>
+<li>Carballo, J. L., Bautista, E., Nava, H., Cruz‐Barraza, J. A., &amp; Chávez, J. A. (2013). Boring sponges, an increasing threat for coral reefs affected by bleaching events. Ecology and Evolution, 3(4), 872–886. <a href="https://doi.org/10.1002/ece3.452">https://doi.org/10.1002/ece3.452</a></li>
+<li>Carballo, J., Naranjo, S., &amp; García-Gómez, J. (1996). Use of marine sponges as stress indicators in marine ecosystems at Algeciras Bay (southern Iberian Peninsula). Marine Ecology Progress Series, 135, 109–122. <a href="https://doi.org/10.3354/meps135109">https://doi.org/10.3354/meps135109</a></li>
+<li>Chaves-Fonnegra, A. (2014). Increase of excavating sponges on Caribbean coral reefs: Reproduction, dispersal, and coral deterioration (Doctoral dissertation). Nova Southeastern University, Dania Beach, Florida, United States.</li>
+<li>Chaves-Fonnegra, A., Maldonado, M., Blackwelder, P., &amp; Lopez, J. V. (2016). Asynchronous reproduction and multi-spawning in the coral-excavating sponge Cliona delitrix. Journal of the Marine Biological Association of the United Kingdom, 96(2), 515–528. <a href="https://doi.org/10.1017/S0025315415000636">https://doi.org/10.1017/S0025315415000636</a></li>
+<li>Chaves‐Fonnegra, A., Riegl, B., Zea, S., Lopez, J. V., Smith, T., Brandt, M., &amp; Gilliam, D. S. (2018). Bleaching events regulate shifts from corals to excavating sponges in algae‐dominated reefs. Global Change Biology, 24(2), 773–785. <a href="https://doi.org/10.1111/gcb.13962">https://doi.org/10.1111/gcb.13962</a></li>
+<li>Chaves-Fonnegra, A., &amp; Zea, S. (2007). Observations on reef coral undermining by the Caribbean excavating sponge Cliona delitrix (Demospongiae, Hadromerida). In Porifera research: Biodiversity, innovation, and sustainability (pp. 247–254). Museu Nacional</li>
+<li>Chaves-Fonnegra, A., &amp; Zea, S. (2011). Coral colonization by the encrusting excavating Caribbean sponge Cliona delitrix: Cliona delitrix coral colonization. Marine Ecology, 32(2), 162–173. <a href="https://doi.org/10.1111/j.1439-0485.2010.00416.x">https://doi.org/10.1111/j.1439-0485.2010.00416.x</a></li>
+<li>Chiappone, M., Rutten, L. M., Miller, S. L., &amp; Swanson, D. W. (2017). Large-scale distributional patterns of the encrusting and excavating sponge Cliona delitrix Pang on Florida Keys coral substrates.</li>
+<li>Cortés, J., Murillo, M. M., Guzmán, H. M., &amp; Acuña, J. (1984). Pérdida de zooxantelas y muerte de corales y otros organismos arrecifales en el Caribe y Pacífico de Costa Rica. Revista de Biología Tropical, 32(2), 227–231.</li>
+<li>Costa, S. V., Engelsma, M. Y., de Bakker, D. M., Webb, A. E., Mera, H., Orozco, C., Robertson, A., Enochs, I. C., &amp; Vermeij, M. J. A. (2021). Diversity and disease: The effects of coral diversity on prevalence and impacts of stony coral tissue loss disease in Saint</li>
+<li>Thomas, U.S. Virgin Islands. Frontiers in Marine Science, 8, 682688</li>
+<li>Cramer, K. L., Donovan, M. K., Jackson, J. B. C., Greenstein, B. J., Korpanty, C. A., Cook, G. M., &amp; Pandolfi, J. M. (2021). The transformation of Caribbean coral communities since humans. Ecology and Evolution, 11(15), 10098–10118</li>
+<li>Díaz, M. C., &amp; Rützler, K. (2001). Sponges: An essential component of Caribbean coral reefs. Bulletin of Marine Science, 69(2), 535–546.</li>
+<li>Done, T. J. (1992). Phase shifts in coral reef communities and their ecological significance. Hydrobiologia, 247(1–3), 121–132. <a href="https://doi.org/10.1007/BF00008211">https://doi.org/10.1007/BF00008211</a></li>
+<li>Dorai-Raj, S. (2014). binom: Binomial confidence intervals for several parameterizations (R package version 1.1-1.1)</li>
+<li>Dubinsky, Z. (2009). Coral reef biodiversity. In J. C. J. Nihoul &amp; C.-T. A. Chen (Eds.), Oceanography (Vol. II). Encyclopedia of Life Support Systems (EOLSS)</li>
+<li>Duckworth, A. R., &amp; Peterson, B. J. (2013). Effects of seawater temperature and pH on the boring rates of the sponge Cliona celata in scallop shells. Marine Biology, 160(1), 27–35. <a href="https://doi.org/10.1007/s00227-012-2053-z">https://doi.org/10.1007/s00227-012-2053-z</a></li>
+<li>Ennis RS, Brandt ME, Wilson Grimes KR, Smith TB (2016) Coral reef health response to chronic and acute changes in water quality in St.</li>
+<li>Thomas, United States Virgin Islands. Marine Pollution Bulletin 111:418-427</li>
+<li>Ennis, R. S., Kadison, E., Heidman, S., Brandt, M. E., Henderson, L. M., &amp; Smith, T. B. (2020). The United States Virgin Islands Territorial Coral Reef Monitoring Program. . 2020 Annual Report. University of the Virgin Islands, United States Virgin Islands 293pp.</li>
+<li>Enochs, I. C., Manzello, D. P., Carlton, R. D., Graham, D. M., Ruzicka, R., &amp; Colella, M. A. (2015). Ocean acidification enhances the bioerosion of a common coral reef sponge: Implications for the persistence of the Florida Reef Tract. Bulletin of Marine Science, 91(2), 271–290. <a href="https://doi.org/10.5343/bms.2014.1045">https://doi.org/10.5343/bms.2014.1045</a></li>
+<li>Esri. (2025). ArcGIS Pro (Version 3.5) [Computer software]. Environmental Systems Research Institute.</li>
+<li>Ferrario, F., Beck, M. W., Storlazzi, C. D., Micheli, F., Shepard, C. C., &amp; Airoldi, L. (2014). The effectiveness of coral reefs for coastal hazard risk reduction and adaptation. Nature Communications, 5, 3794. <a href="https://doi.org/10.1038/ncomms4794">https://doi.org/10.1038/ncomms4794</a></li>
+<li>Glynn, P. W. (1997). Bioerosion and Coral-Reef Growth: A Dynamic Balance. In C. Birkeland (Ed.), Life and Death of Coral Reefs (pp. 68–95). Springer US. <a href="https://doi.org/10.1007/978-1-4615-5995-5_4">https://doi.org/10.1007/978-1-4615-5995-5_4</a></li>
+<li>González-Rivero, M., Ereskovsky, A. V., Schönberg, C. H. L., Ferrari, R., Fromont, J., &amp; Mumby, P. J. (2013). Life-history traits of a common Caribbean coral-excavating sponge, Cliona tenuis (Porifera: Hadromerida). Journal of Natural History, 47(45–46), 2815–2834. <a href="https://doi.org/10.1080/00222933.2013.802042">https://doi.org/10.1080/00222933.2013.802042</a></li>
+<li>González-Rivero, M., Yakob, L., &amp; Mumby, P. J. (2011). The role of sponge competition on coral reef alternative steady states. Ecological Modelling, 222(11), 1847–1853. <a href="https://doi.org/10.1016/j.ecolmodel.2011.03.020">https://doi.org/10.1016/j.ecolmodel.2011.03.020</a></li>
+<li>Halperin, A. (2014). Distribution, Growth, and Impact of the Coral-Excavating Sponge, Cliona delitrix, on the Stony Coral Communities Offshore Southeast Florida.</li>
+<li>Halperin, A. A., Chaves-Fonnegra, A., &amp; Gilliam, D. S. (2016). Effects of excavating-sponge removal on coral growth. Journal of the Marine Biological Association of the United Kingdom, 96(2), 473–479. <a href="https://doi.org/10.1017/S0025315415001228">https://doi.org/10.1017/S0025315415001228</a></li>
+<li>Halperin, A. A., Chaves-Fonnegra, A., &amp; Gilliam, D. S. (2017). Coral-excavating sponge Cliona delitrix: Current trends of space occupation on high latitude coral reefs. Hydrobiologia, 790(1), 299–310. <a href="https://doi.org/10.1007/s10750-016-3042-x">https://doi.org/10.1007/s10750-016-3042-x</a></li>
+<li>Harvell, D., Jordán-Dahlgren, E., Merkel, S., Rosenberg, E., Raymundo, L., Smith, G., Weil, E., &amp; Willis, B. (2007). Coral Disease, Environmental Drivers, and the Balance Between Coral and Microbial Associates. Oceanography, 20(1), 172–195. <a href="https://doi.org/10.5670/oceanog.2007.91">https://doi.org/10.5670/oceanog.2007.91</a></li>
+<li>Henderson LM, Blondeau J, Taylor M, Nemeth RS, Smith TB (2026) Sediment flux and stony coral health in the nearshore US Virgin Islands. Marine Environmental Research 214:107732</li>
+<li>Hill, M., Allenby, A., Ramsby, B., Schönberg, C., &amp; Hill, A. (2011). Symbiodinium diversity among host clionaid sponges from Caribbean and Pacific reefs: Evidence of heteroplasmy and putative host-specific symbiont lineages. Molecular Phylogenetics and Evolution, 59(1), 81–88. <a href="https://doi.org/10.1016/j.ympev.2011.01.006">https://doi.org/10.1016/j.ympev.2011.01.006</a></li>
+<li>Hill, M. S. (1996). Symbiotic zooxanthellae enhance boring and growth rates of the tropical sponge Anthosigmella varians forma varians. Marine Biology, 125(4), 649–654. <a href="https://doi.org/10.1007/BF00349246">https://doi.org/10.1007/BF00349246</a></li>
+<li>Hollander ENR, Krampitz NM, Ennis RS, Heidmann SL, Kadison E, Smith TB (2025) The United States Virgin Islands Territorial Coral Reef Monitoring Program. 2024 Annual Report. University of the Virgin Islands, United States Virgin Islands 69 pp</li>
+<li>Hughes, T. P., Baird, A. H., Bellwood, D. R., Card, M., Connolly, S. R., Folke, C., Grosberg, R., Hoegh-Guldberg, O., Jackson, J. B. C.,</li>
+<li>Kleypas, J., Lough, J. M., Marshall, P., Nyström, M., Palumbi, S. R., Pandolfi, J. M., Rosen, B., &amp; Roughgarden, J. (2003). Climate Change, Human Impacts, and the Resilience of Coral Reefs. Science, New Series, 301(5635), 929–933.</li>
+<li>Hughes, T. P., Graham, N. A. J., Jackson, J. B. C., Mumby, P. J., &amp; Steneck, R. S. (2010). Rising to the challenge of sustaining coral reef resilience. Trends in Ecology &amp; Evolution, 25(11), 633–642. <a href="https://doi.org/10.1016/j.tree.2010.07.011">https://doi.org/10.1016/j.tree.2010.07.011</a></li>
+<li>Iannone, R., Cheng, J., Schloerke, B., Hughes, E., Lauer, A., Seo, J., Brevoort, K., &amp; Anderson, J. (2024). gt: Easily create presentation-ready display tables [R package]</li>
+<li>Kadison, E., Brandt, M., Nemeth, R., Martens, J., Blondeau, J., &amp; Smith, T. (2017). Abundance of commercially important reef fish indicates different levels of over-exploitation across shelves of the US Virgin Islands. PLoS One, 12(7), e0180063.</li>
+<li>Lenth R (2025). _emmeans: Estimated Marginal Means, aka Least-Squares Means_. R package version 1.11.0, <a href="https://CRAN.R-project.org/package=emmeans">https://CRAN.R-project.org/package=emmeans</a></li>
+<li>López-Victoria, M., &amp; Zea, S. (2004). Storm-mediated coral colonization by an excavating Caribbean sponge. Climate Research, 26, 251– 256. <a href="https://doi.org/10.3354/cr026251">https://doi.org/10.3354/cr026251</a></li>
+<li>López-Victoria, M., &amp; Zea, S. (2005). Current trends of space occupation by encrusting excavating sponges on Colombian coral reefs. Marine Ecology, 26, 33–41</li>
+<li>López-Victoria, M., Zea, S., &amp; Weil, E. (2006). Competition for space between encrusting excavating Caribbean sponges and other coral reef organisms. Marine Ecology Progress Series, 312, 113–121. <a href="https://doi.org/10.3354/meps312113">https://doi.org/10.3354/meps312113</a></li>
+<li>Maragos, Crosby, &amp; McManus. (1996). Coral Reefs and Biodiversity: A Critical and Threatened Relationship. Oceanography, 9(1), 83–99. <a href="https://doi.org/10.5670/oceanog.1996.31">https://doi.org/10.5670/oceanog.1996.31</a></li>
+<li>Marulanda‐Gómez, Á., López‐Victoria, M., &amp; Zea, S. (2017). Current status of coral takeover by an encrusting excavating sponge in a Caribbean reef. Marine Ecology, 38(1), e12379. <a href="https://doi.org/10.1111/maec.12379">https://doi.org/10.1111/maec.12379</a></li>
+<li>Mies, M., Francini-Filho, R. B., Zilberberg, C., Garrido, A. G., Longo, G. O., Laurentino, E., Güth, A. Z., Sumida, P. Y. G., &amp; Ferreira, C. E. L. (2020). South Atlantic coral reefs are major global warming refugia and less susceptible to bleaching. Frontiers in Marine Science, 7, 514. <a href="https://doi.org/10.3389/fmars.2020.00514">https://doi.org/10.3389/fmars.2020.00514</a></li>
+<li>Miller, A. N., Strychar, K. B., Shirley, T. C., &amp; Rützler, K. (2010). Effects of Heat and Salinity Stress on the Sponge Cliona Celata. International Journal of Biology, 2(2), p3. <a href="https://doi.org/10.5539/ijb.v2n2p3">https://doi.org/10.5539/ijb.v2n2p3</a></li>
+<li>Miller, J., Muller, E., Rogers, C., Waara, R., Atkinson, A., Whelan, K. R. T., Patterson, M., &amp; Witcher, B. (2009). Coral disease following massive bleaching in 2005 causes 60% decline in coral cover on reefs in the US Virgin Islands. Coral Reefs, 28(4), 925–937. <a href="https://doi.org/10.1007/s00338-009-0531-7">https://doi.org/10.1007/s00338-009-0531-7</a></li>
+<li>Morris, J., Enochs, I. C., Webb, A., de Bakker, D. M., Soderberg, N., Kolodziej, G., &amp; Manzello, D. (2022). The influences of diurnal variability and ocean acidification on the bioerosion rates of two reef-dwelling Caribbean sponges. Global Change Biology, 28(23), 7126–7138. <a href="https://doi.org/10.1111/gcb.16442">https://doi.org/10.1111/gcb.16442</a></li>
+<li>Neumann, A. C. (1966). OBSERVATIONS ON COASTAL EROSION IN BERMUDA AND MEASUREMENTS OF THE BORING RATE OF THE SPONGE, CLIONA LAMPA 1,2. Limnology and Oceanography, 11(1), 92–108. <a href="https://doi.org/10.4319/lo.1966.11.1.0092">https://doi.org/10.4319/lo.1966.11.1.0092</a></li>
+<li>Norström, A., Nyström, M., Lokrantz, J., &amp; Folke, C. (2009). Alternative states on coral reefs: Beyond coral–macroalgal phase shifts. Marine Ecology Progress Series, 376, 295–306. <a href="https://doi.org/10.3354/meps07815">https://doi.org/10.3354/meps07815</a></li>
+<li>Oliveira, M., Bleuel, J., Barbosa, F. das C. S., Holanda, Y. de, Brabo, L., Gurgel, A. R., Hajdu, E., Morais, J., Salani, S., &amp; Soares, M. O. (2025). Stress-tolerant coral faces bioerosion: Sponge colonization under mass bleaching. Research Square. <a href="https://doi.org/10.21203/rs.3.rs-6805260/v1">https://doi.org/10.21203/rs.3.rs-6805260/v1</a></li>
+<li>OpenAI. (2025). ChatGPT (October 2025 version) <a href="https://chat.openai.com/">https://chat.openai.com/</a></li>
+<li>Pang, K. (1973). THE ECOLOGY OF SOME JAMAICAN EXCAVATING SPONGES. Bulletin of Marine Science.</li>
+<li>Paulay, G. (1997). Diversity and Distribution of Reef Organisms. In C. Birkeland (Ed.), Life and Death of Coral Reefs (pp. 298–353). Springer US. <a href="https://doi.org/10.1007/978-1-4615-5995-5_14">https://doi.org/10.1007/978-1-4615-5995-5_14</a></li>
+<li>Pawlik, J. R., Loh, T.-L., &amp; McMurray, S. E. (2018). A review of bottom-up vs. top-down control of sponges on Caribbean fore-reefs: What’s old, what’s new, and future directions. PeerJ, 6, e4343. <a href="https://doi.org/10.7717/peerj.4343">https://doi.org/10.7717/peerj.4343</a></li>
+<li>Pedersen, T. L. (2023). patchwork: The composer of plots [R package]. CRAN</li>
+<li>Perry, C. T. (1998). Macroborers within coral framework at Discovery Bay, north Jamaica: Species distribution and abundance, and effects on coral preservation. Coral Reefs, 17(3), 277–287. <a href="https://doi.org/10.1007/s003380050129">https://doi.org/10.1007/s003380050129</a></li>
+<li>Perry, C. T., Edinger, E. N., Kench, P. S., Murphy, G. N., Smithers, S. G., Steneck, R. S., &amp; Mumby, P. J. (2012). Estimating rates of biologically driven coral reef framework production and erosion: A new census-based carbonate budget methodology and applications to the reefs of Bonaire. Coral Reefs, 31(3), 853–868. <a href="https://doi.org/10.1007/s00338-012-0901-4">https://doi.org/10.1007/s00338-012-0901-4</a></li>
+<li>Perry, C. T., Murphy, G. N., Kench, P. S., Smithers, S. G., Edinger, E. N., Steneck, R. S., &amp; Mumby, P. J. (2013). Caribbean-wide decline in carbonate production threatens coral reef growth. Nature Communications, 4(1), 1402. <a href="https://doi.org/10.1038/ncomms2409">https://doi.org/10.1038/ncomms2409</a></li>
+<li>Perry, C. T., Spencer, T., &amp; Kench, P. S. (2008). Carbonate budgets and reef production states: A geomorphic perspective on the ecological phase-shift concept. Coral Reefs, 27(4), 853–866. <a href="https://doi.org/10.1007/s00338-008-0418-z">https://doi.org/10.1007/s00338-008-0418-z</a></li>
+<li>Pomponi, S. A. (1980). Cytological mechanisms of calcium carbonate excavation by boring sponges. International Review of Cytology, 65, 301–319</li>
+<li>Posit team (2024). RStudio: Integrated Development Environment for R. Posit Software, PBC, Boston, MA. URL <a href="http://www.posit.co/">http://www.posit.co/</a></li>
+<li>R Core Team. (2023). R: A language and environment for statistical computing. R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a></li>
+<li>Ramsby, B. D., Hoogenboom, M. O., Smith, H. A., Camp, E. F., &amp; Suggett, D. J. (2018). The bioeroding sponge Cliona orientalis will not tolerate future projected ocean warming. Scientific Reports, 8, 8302. <a href="https://doi.org/10.1038/s41598-018-26535-w">https://doi.org/10.1038/s41598-018-26535-w</a></li>
+<li>Reaka-Kudla, M. L. (2005). Biodiversity of Caribbean coral reefs. Caribbean Marine Biodiversity: The Known and the Unknown, 259-276.</li>
+<li>Rice, M. M., Maher, R. L., Correa, A. M. S., Moeller, H. V., Lemoine, N. P., Shantz, A. A., Burkepile, D. E., &amp; Silbiger, N. J. (2020). Macroborer presence on corals increases with nutrient input and promotes parrotfish bioerosion. Coral Reefs, 39(2), 409–418. <a href="https://doi.org/10.1007/s00338-020-01904-y">https://doi.org/10.1007/s00338-020-01904-y</a></li>
+<li>Risk, M. J., Sammarco, P. W., &amp; Edinger, E. N. (1995). Bioerosion in Acropora across the continental shelf of the Great Barrier Reef. Coral Reefs, 14(2), 79–86. <a href="https://doi.org/10.1007/BF00303427">https://doi.org/10.1007/BF00303427</a></li>
+<li>Robinson, D., Hayes, A., Couch, S., &amp; Hvitfeldt, E. (2025). broom: Convert statistical objects into tidy tibbles (R package version 1.0.11) [Computer software]</li>
+<li>Rose, C. S., &amp; Risk, M. J. (1985). Increase in Cliona delitrix Infestation of Montastrea cavernosa Heads on an Organically Polluted Portion of the Grand Cayman Fringing Reef. Marine Ecology, 6(4), 345–363. <a href="https://doi.org/10.1111/j.1439-0485.1985.tb00142.x">https://doi.org/10.1111/j.1439-0485.1985.tb00142.x</a></li>
+<li>Rosell, D. (1994). Morphological and ecological relationships of two clionid sponges. Ophelia, 40(1), 37–50. <a href="https://doi.org/10.1080/00785326.1994.10429549">https://doi.org/10.1080/00785326.1994.10429549</a></li>
+<li>Rützler, K. (1975). The Role of Burrowing Sponges in Bioerosion. Oecologia, 19(3), 203–216.</li>
+<li>Rützler, K. (2002a). Impact of crustose clionid sponges on Caribbean reef corals. Acta Geologica Hispanica, 37, 61–72.</li>
+<li>Rützler, K. (2002b). Family Clionaidae D'Orbigny, 1851. In J. N. A. Hooper &amp; R. W. M. van Soest (Eds.), Systema Porifera: A guide to the classification of sponges (pp. 173–185). Kluwer Academic/Plenum Publishers, New York.</li>
+<li>Schönberg, C. H. L. (2001). Estimating the extent of endolithic tissue of a great barrier reef clionid sponge. Senckenbergiana Maritima, 31(1), 29–39. <a href="https://doi.org/10.1007/BF03042834">https://doi.org/10.1007/BF03042834</a></li>
+<li>Schönberg, C. H. L. (2002). Sponges of the ‘Cliona viridis complex’ – a key for species identification. In Proceedings of the 9th International Coral Reef Symposium, Bali, Indonesia (Vol. 1, pp. 295–300)</li>
+<li>Schönberg, C. H. L. (2003). Substrate effects on the bioeroding demosponge Cliona orientalis. 2. Substrate colonisation and tissue growth. Marine Ecology, 24(1), 59–74</li>
+<li>Schönberg, C. H. L. (2008). A history of sponge erosion: From past myths and hypotheses to recent approaches. In M. Wisshak &amp; L. Tapanila (Eds.), Current Developments in Bioerosion (pp. 165–202). Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/978-3-540-77598-0_9">https://doi.org/10.1007/978-3-540-77598-0_9</a></li>
+<li>Schönberg, C. H. L., &amp; Beuck, L. (2007). Spicule dimensions of Siphonodictyon spp., raw data, biometry and frequency distributions [Application/zip]. 87 datasets. <a href="https://doi.org/10.1594/PANGAEA.659091">https://doi.org/10.1594/PANGAEA.659091</a></li>
+<li>Schönberg, C. H. L., &amp; Ortiz, J.-C. (2009). Is sponge bioerosion increasing? In B. Riegl &amp; R. E. Dodge (Eds.), Proceedings of the 11th International Coral Reef Symposium (pp. 520–523). Nova Southeastern University, Fort Lauderdale, Florida</li>
+<li>Schönberg, C. H. L., Fang, J. K.-H., &amp; Carballo, J. L. (2017). Bioeroding Sponges and the Future of Coral Reefs. In J. L. Carballo &amp; J. J. Bell (Eds.), Climate Change, Ocean Acidification and Sponges (pp. 179–372). Springer International Publishing. <a href="https://doi.org/10.1007/978-3-319-59008-0_7">https://doi.org/10.1007/978-3-319-59008-0_7</a></li>
+<li>Smith, T. B., Nemeth, R. S., Blondeau, J., Calnan, J. M., Kadison, E., &amp; Herzlieb, S. (2008). Assessing coral reef health across onshore to offshore stress gradients in the US Virgin Islands. Marine Pollution Bulletin, 56(12), 1983–1991. <a href="https://doi.org/10.1016/j.marpolbul.2008.08.015">https://doi.org/10.1016/j.marpolbul.2008.08.015</a></li>
+<li>Stearn, C. W., Scoffin, T. P., &amp; Martindale, W. (1977). Calcium carbonate budget of a fringing reef on the west coast of Barbados. Part I. Zonation and productivity. Bulletin of Marine Science, 27, 479–510.</li>
+<li>Stubler, A. D., Furman, B. T., &amp; Peterson, B. J. (2014). Effects of pCO2 on the interaction between an excavating sponge, Cliona varians, and a hermatypic coral, Porites furcata. Marine Biology, 161(8), 1851–1859. <a href="https://doi.org/10.1007/s00227-014-2466-y">https://doi.org/10.1007/s00227-014-2466-y</a></li>
+<li>Thurber, A. R., Seabrook, S., &amp; Welsh, R. M. (2020). Riddles in the cold: Antarctic endemism and microbial succession impact methane cycling in the Southern Ocean. Proceedings of the Royal Society B: Biological Sciences, 287(1931), 20201134. <a href="https://doi.org/10.1098/rspb.2020.1134">https://doi.org/10.1098/rspb.2020.1134</a></li>
+<li>Vicente, V. P. (1990). Response of sponges with autotrophic endosymbionts during the coral-bleaching episode in Puerto Rico. Coral Reefs, 8(4), 199–202. <a href="https://doi.org/10.1007/BF00265011">https://doi.org/10.1007/BF00265011</a></li>
+<li>Warburton, F. E. (1958). The manner in which the sponge Cliona bores in calcareous objects. Canadian Journal of Zoology, 36, 555–562</li>
+<li>Ward-Paige, C. A., Risk, M. J., Sherwood, O. A., &amp; Jaap, W. C. (2005). Clionid sponge surveys on the Florida Reef Tract suggest land-based nutrient inputs. Marine Pollution Bulletin, 51(5–7), 570–579. <a href="https://doi.org/10.1016/j.marpolbul.2005.04.006">https://doi.org/10.1016/j.marpolbul.2005.04.006</a></li>
+<li>Weinstein, D. K., Maher, R. L., &amp; Correa, A. M. S. (2019). Bioerosion. In Y. Loya, K. A. Puglise, &amp; T. C. L. Bridge (Eds.), Mesophotic Coral Ecosystems (Vol. 12, pp. 829–847). Springer International Publishing. <a href="https://doi.org/10.1007/978-3-319-92735-0_43">https://doi.org/10.1007/978-3-319-92735-0_43</a></li>
+<li>Weinstein, D., Sharifi, A., Klaus, J., Smith, T., Giri, S., &amp; Helmle, K. (2016). Coral growth, bioerosion, and secondary accretion of living orbicellid corals from mesophotic reefs in the US Virgin Islands. Marine Ecology Progress Series, 559, 45–63. <a href="https://doi.org/10.3354/meps11883">https://doi.org/10.3354/meps11883</a></li>
+<li>Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L. D., François, R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn,</li>
+<li>M., Pedersen, T. L., Miller, E., Bache, S. M., Müller, K., Ooms, J., Robinson, D., Seidel, D. P., Spinu, V., Takahashi, K.,</li>
+<li>Vaughan, D., Wilke, C., Woo, K., &amp; Yutani, H. (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a></li>
+<li>Williams, E. H., Bartels, P. J., &amp; Bunkley-Williams, L. (1999). Predicted disappearance of coral-reef ramparts: A direct result of major ecological disturbances. Global Change Biology, 5(7), 839–845</li>
+<li>Wisshak, M., Schönberg, C. H. L., Form, A., &amp; Freiwald, A. (2012). Ocean Acidification Accelerates Reef Bioerosion. PLoS ONE, 7(9), e45124. <a href="https://doi.org/10.1371/journal.pone.0045124">https://doi.org/10.1371/journal.pone.0045124</a></li>
+<li>Wisshak, M., Schönberg, C. H. L., Form, A., &amp; Freiwald, A. (2014). Sponge bioerosion accelerated by ocean acidification across species and latitudes? Helgoland Marine Research, 68(2), 253–262. <a href="https://doi.org/10.1007/s10152-014-0385-4">https://doi.org/10.1007/s10152-014-0385-4</a></li>
+<li>Wulff, J. L. (2006). Rapid diversity and abundance decline in a Caribbean coral reef sponge community. Biological Conservation, 127(2), 167–176. <a href="https://doi.org/10.1016/j.biocon.2005.08.007">https://doi.org/10.1016/j.biocon.2005.08.007</a></li>
+<li>Zea, S., &amp; Weil, E. (2003). Taxonomy of the Caribbean excavating sponge species complex Cliona caribbaea – C. aprica – C. langae (Porifera, Hadromerida, Clionaidae).</li>
+<li>Zea, S., Henkel, T.P., and Pawlik, J.R. (2026). The Sponge Guide: a picture guide to Caribbean sponges. 4th Edition. Available online at spongeguide.uncw.edu.</li>
+<li>Zeileis, A., &amp; Hothorn, T. (2002). Diagnostic checking in regression relationships. R News, 2(3), 7–10.</li>
+<li>Zeileis, A., &amp; Hothorn, T. (2020). lmtest: Testing linear regression models [R package]</li>
+<li>Zhu, H. (2023). kableExtra: Construct complex table with “kable” and pipe syntax [R package]</li>
+<li>Zundelevich, A., Lazar, B., &amp; Ilan, M. (2007). Chemical versus mechanical bioerosion of coral reefs by boring sponges—Lessons from Pione cf. Vastifica. Journal of Experimental Biology, 210(1), 91–96. <a href="https://doi.org/10.1242/jeb.02627">https://doi.org/10.1242/jeb.02627</a></li>
+</ol>
 
 ## Overview
 
