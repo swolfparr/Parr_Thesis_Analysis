@@ -710,7 +710,7 @@ show_table(glm_or_top, n = 12, caption = "Top adjusted host-species odds ratios 
 ## Depth Signal
 
 <div class="method">
-<strong>What the depth analysis is used for.</strong> The depth analysis asks whether Clionaidae prevalence changes across site depth bins and whether very shallow reefs explain most of the positive colonies. This direct depth-bin summary is easier to interpret than a PCA for audiences who need the biological result quickly.
+<strong>What the depth analysis is used for.</strong> The depth analysis asks whether Clionaidae prevalence changes across site depth bins and whether very shallow reefs explain most of the positive colonies.
 </div>
 
 ```{r depth-association-figure, fig.cap="Poster-ready depth association figure for focal coral hosts."}
@@ -746,7 +746,7 @@ include_if_exists("Poster_Clionaid_PCA.png")
 ```
 
 <div class="interpretation">
-<strong>Interpretation.</strong> The PCA is useful as a compact exploratory view of spatial gradients. PC1 captures most of the variation and mainly separates deeper/offshore structure from higher-prevalence shallow sites, but the direct depth-bin figure remains the clearest visual for communicating the depth result.
+<strong>Interpretation.</strong> The PCA is useful as a compact exploratory view of spatial gradients. PC1 captures most of the variation and mainly separates deeper/offshore structure from higher-prevalence shallow sites.
 </div>
 
 ```{r depth-model-tables}
